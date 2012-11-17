@@ -2,6 +2,7 @@
 #define IMAGE_H
 
 typedef struct image Image;
+typedef struct pixel Pixel;
 
 Image* loadImage(char* fileName);
 int saveImage(Image*);
