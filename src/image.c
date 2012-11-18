@@ -11,10 +11,11 @@
 struct image{
 	short format;//P1 to P6
 	char* comments;
+	char* name;
 	int width;
 	int height;
 	int maxValue;
-	unsigned char* tabRVB;
+	unsigned char* arrayRVB;
 	
 };
 
@@ -41,14 +42,23 @@ Image* loadImage(char* fileName){
 		return NULL;
 	}
 	
-	img = (Image*) malloc(sizeof(Image));
+	img = (Image*) calloc(1,sizeof(Image));
 	if(img == NULL){
 		fclose(imgFile);
 		return NULL;
 	}
 	
 	
+	img->name = (char*) malloc((strlen(fileName)+1)*sizeof(char));
+	if(img->name == NULL){
+		fprintf(stderr,"Impossible de récupérer le nom de l'image.\n");
+	}
+	else{
+		strcpy(img->name,fileName);
+	}
+	
 	while(ctr < N_HEADER_DATALINE && fgets(currentTxt, MAX_LINE_LENGTH, imgFile) != NULL){
+		//Gestion des commentaires
 		if(currentTxt[0] == '#'){
 			if(img->comments == NULL){
 				img->comments = (char*) malloc(strlen(currentTxt)*sizeof(char));
@@ -57,6 +67,7 @@ Image* loadImage(char* fileName){
 				img->comments = (char*) realloc(img,
 					(strlen(img->comments)+strlen(currentTxt))*sizeof(char));
 			}
+			strcpy(img->comments,currentTxt);
 			continue;	
 		}
 		
@@ -78,8 +89,8 @@ Image* loadImage(char* fileName){
 	
 	//Allocation mémoire pour les lignes de pixels
 	nPix = img->width*img->height;
-	img->tabRVB = (unsigned char*) malloc(nPix*3*sizeof(unsigned char));//1px = 3 composantes
-	if(img->tabRVB == NULL){
+	img->arrayRVB = (unsigned char*) malloc(nPix*3*sizeof(unsigned char));//1px = 3 composantes
+	if(img->arrayRVB == NULL){
 		free(img->comments);
 		free(img);
 	}
@@ -95,13 +106,13 @@ Image* loadImage(char* fileName){
 	haut de l'image en bas du tableau). On décale de trois pour prendre les composantes dans le bon ordre*/
 	for(i = nPix*3-3; i >= 0; i=i-3){		
 		readNUchar(&currentPix, 1, imgFile);
-		img->tabRVB[i] = currentPix;
+		img->arrayRVB[i] = currentPix;
 		readNUchar(&currentPix, 1, imgFile);
-		img->tabRVB[i+1] = currentPix;
+		img->arrayRVB[i+1] = currentPix;
 		readNUchar(&currentPix, 1, imgFile);
-		img->tabRVB[i+2] = currentPix;
+		img->arrayRVB[i+2] = currentPix;
 	}
-
+	
 	fclose(imgFile);
 	
 	return img;
@@ -134,16 +145,96 @@ void detectWH(const char* text, int* w, int* h){
 
 void freeImage(Image* img){
 	free(img->comments);
-	free(img->tabRVB);
+	free(img->arrayRVB);
 	free(img);
 }
 
+bool saveImage(Image* img){
+	FILE* imgFile = NULL;
+	char format[2], dim[4+1+4], maxVal[4];
+	long nPix,i;
+	
+	if(img == NULL || img->arrayRVB == NULL){
+		fprintf(stderr,"Image nulle ou vide de pixels.\n");
+		return false;
+	}
+	
+	
+	if(img->name == NULL){
+		img->name = (char*) malloc((strlen("noname.ppm")+1)*sizeof(char));
+		strcpy(img->name,"noname.ppm");
+	}
+	
+	imgFile = fopen(img->name, "w");
+	
+	
+	if(imgFile == NULL){
+		fprintf(stderr,"Impossible de sauvegarder l'image. ");
+		fprintf(stderr,"Création de %s impossible.\n", img->name);
+		return false;
+	}
+	
+	//Ecriture de l'en-tête
+	
+	/*
+	 * while(fputs(...) == EOF) => tente d'écrire dans le fichier
+	 * jusqu'à ce que fputs réussisse.
+	 */
+	
+	sprintf(format,"P%d\n",img->format);
+	while(fputs(format, imgFile) == EOF);
+	
+	sprintf(dim,"%d %d", img->width,img->height);
+	while(fputs(dim, imgFile) == EOF);
+	while(fputs("\n", imgFile) == EOF);
+	
+	sprintf(maxVal, "%d", img->maxValue);
+	while(fputs(maxVal, imgFile) == EOF);
+	while(fputs("\n", imgFile) == EOF);
+	
+	if(img->comments != NULL){
+		fputs(img->comments,imgFile);
+	}
+	
+	fflush(imgFile);
+	fclose(imgFile);
+	
+	//Ecriture des pixels
+	nPix = img->width*img->height;
+	imgFile = fopen(img->name, "ab");
+	if(imgFile == NULL){
+		fprintf(stderr, "Impossible d'écrire les données binaires du fichier %s.\n", img->name);
+		return false;
+	}
+	
+	//On inverse le tableau avant de l'écrire
+    	invertPPMArray(img->arrayRVB,nPix*3);
+    	
+	writeNUchar(img->arrayRVB, nPix*3, imgFile);
+	
+	//On remet le tableau dans le bon sens après l'avoir écrit
+    	invertPPMArray(img->arrayRVB,nPix*3);
+    	
+	fflush(imgFile);
+	
+	fclose(imgFile);
+
+	
+	return true;
+}
 
 //Fonction de test à supprimer
 void main(void){
-	Image* test = loadImage("../images/Lena.512.ppm");
+	Image* test = loadImage("../images/Clown.256.ppm");
+	
+	strcpy(test->name, "../images/Clown.257.ppm");
+	saveImage(test);
+	
+	freeImage(test);
+	test = loadImage("../images/Clown.257.ppm");
+
 	if(test)
-		initGLIMAGIMP(test->width,test->height,test->tabRVB);
+		initGLIMAGIMP(test->width,test->height,test->arrayRVB);
 	free(test);
 	
 }
