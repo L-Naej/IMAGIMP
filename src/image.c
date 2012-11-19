@@ -86,9 +86,9 @@ Image* loadImage(char* fileName){
 	
 	fclose(imgFile);
 	
-	
 	//Allocation mémoire pour les lignes de pixels
-	nPix = img->width*img->height;
+	nPix = (img->width)*(img->height);
+	
 	img->arrayRVB = (unsigned char*) malloc(nPix*3*sizeof(unsigned char));//1px = 3 composantes
 	if(img->arrayRVB == NULL){
 		free(img->comments);
@@ -104,7 +104,7 @@ Image* loadImage(char* fileName){
 	
 	/*On commence par le dernier pixel (image stockées 'à l'envers' avec le 
 	haut de l'image en bas du tableau). On décale de trois pour prendre les composantes dans le bon ordre*/
-	for(i = nPix*3-3; i >= 0; i=i-3){		
+	for(i =(nPix*3)-3; i >= 0; i=i-3){		
 		readNUchar(&currentPix, 1, imgFile);
 		img->arrayRVB[i] = currentPix;
 		readNUchar(&currentPix, 1, imgFile);
@@ -124,22 +124,23 @@ Image* loadImage(char* fileName){
  */
 void detectWH(const char* text, int* w, int* h){
 	if(text==NULL)return;
-	char sW[4]; char sH[4];
+	char sW[5]; char sH[5];
 	short i = 0, j = 0;
 	
+	sW[4] = sH[4] = '\0';
 	int sText = strlen(text);
 	
 	while(!isspace(text[i]) && i < 4){
 		sW[i] = text[i];
 		i++;
 	}
-	
+
 	*w = atoi(sW);
-	while(text[i+j] != '\n' && j < 4 && (i+j) != sText){
+	i++;
+	while(text[i+j] != '\n' && j < 4 && (i+j) < sText){
 		sH[j] = text[i+j];
 		j++;
 	}
-	
 	*h = atoi(sH);
 }
 
@@ -151,7 +152,7 @@ void freeImage(Image* img){
 
 bool saveImage(Image* img){
 	FILE* imgFile = NULL;
-	char format[2], dim[4+1+4], maxVal[4];
+	char format[4], dim[4+1+4], maxVal[4];
 	long nPix,i;
 	
 	if(img == NULL || img->arrayRVB == NULL){
@@ -231,6 +232,7 @@ void main(void){
 	saveImage(test);
 	
 	freeImage(test);
+	
 	test = loadImage("../images/Clown.257.ppm");
 
 	if(test)
