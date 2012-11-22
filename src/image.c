@@ -124,6 +124,7 @@ Image* loadImage(char* fileName){
  */
 void detectWH(const char* text, int* w, int* h){
 	if(text==NULL)return;
+	//On considère que la taille max est 9999x9999 (soit 4 carac' + \0)
 	char sW[5]; char sH[5];
 	short i = 0, j = 0;
 	
@@ -222,6 +223,17 @@ bool saveImage(Image* img){
 
 	
 	return true;
+}
+
+Image* createEmptyImg(){
+	Image* img = (Image*) malloc(sizeof(Image));
+	if(img != NULL){
+		img->comments = NULL;
+		img->name = NULL;
+		img->arrayRVB = NULL;
+	}
+	return img;
+
 }
 
 //Fonction de test à supprimer

@@ -5,6 +5,7 @@ typedef struct image Image;
 
 Image* loadImage(char* fileName);
 bool saveImage(Image* img);
+Image* createEmptyImg();
 void detectWH(const char* text, int* w, int* h);
 void freeImage(Image* img);
 
