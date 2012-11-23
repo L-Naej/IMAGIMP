@@ -1,9 +1,10 @@
 #include "image.h"
 #include "utils.h"
-#include "../lib/include/interface.h"
+#include <interface.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define MAX_LINE_LENGTH 70
 #define N_HEADER_DATALINE 3
@@ -30,14 +31,13 @@ Image* loadImage(char* fileName){
 	
 	FILE* imgFile = NULL;
 	Image* img = NULL;
-	char* comments = NULL;
 	
 	char currentTxt[MAX_LINE_LENGTH];
 	unsigned char currentPix;
 	
 	long position = 0;
 	short ctr = 0;
-	long int i, j,nPix;
+	long int i, nPix;
 	
 	imgFile = fopen(fileName, "r");
 	if(imgFile==NULL){
@@ -162,7 +162,7 @@ bool saveImage(Image* img){
 	//Format : P+num+\n+\0; dim : largeur+ +hauteur+\0
 	//Maxval : 999+\0
 	char format[4], dim[4+1+4+1], maxVal[4];
-	long nPix,i;
+	long nPix;
 	
 	if(img == NULL || img->arrayRVB == NULL){
 		fprintf(stderr,"Image nulle ou vide de pixels.\n");
@@ -275,7 +275,7 @@ bool imgAddName(Image* img, const char name[]){
 }
 
 //Fonction de test à supprimer
-void main(void){
+int main(int argc, char** argv){
 	Image* test = loadImage("../images/Clown.256.ppm");
 	
 	strcpy(test->name, "../images/Clown.257.ppm");
@@ -289,4 +289,5 @@ void main(void){
 		initGLIMAGIMP(test->width,test->height,test->arrayRVB);
 	free(test);
 	
+	return 0;
 }

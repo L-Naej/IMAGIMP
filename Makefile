@@ -1,8 +1,10 @@
 # $(BIN) est la nom du binaire genere
 BIN = bin/imagimp
 # FLAG
-FLAGS = -g
-# INCLUDES
+FLAGS = -g -Wall
+#Répertoire d'include des librairies
+INCLUDES = ./lib/include
+# Répertoire des librairies
 LIBDIR = ./lib
 # Librairies
 LIBS =  -lglimagimp -lglut -lGL -lGLU
@@ -12,7 +14,7 @@ CC = gcc
 SRC = src/image.c src/utils.c
 
 all:
-	@$(CC) -o $(BIN) $(FLAGS) $(SRC) -L$(LIBDIR) $(LIBS) 
+	@$(CC) -o $(BIN) $(FLAGS) $(SRC) -I$(INCLUDES) -L$(LIBDIR) $(LIBS) 
 	@echo 'Done'
 
 clean:
