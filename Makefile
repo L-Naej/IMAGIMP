@@ -7,11 +7,11 @@ INCLUDES = ./lib/include
 # Répertoire des librairies
 LIBDIR = ./lib
 # Librairies
-LIBS =  -lglimagimp -lglut -lGL -lGLU
+LIBS =  -lglimagimp -lglut -lGL -lGLU -lgdsl
 # Compilateur
 CC = gcc
 # Compilateur
-SRC = src/image.c src/utils.c
+SRC = src/image.c src/utils.c src/lut.c src/lutfunction.c
 
 all:
 	@$(CC) -o $(BIN) $(FLAGS) $(SRC) -I$(INCLUDES) -L$(LIBDIR) $(LIBS) 

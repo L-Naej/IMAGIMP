@@ -1,5 +1,6 @@
 #include "image.h"
 #include "utils.h"
+#include "lut.h"
 #include <interface.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,17 +11,6 @@
 #define N_HEADER_DATALINE 3
 #define DEFAULT_MAX_VAL 255
 #define NB_COL_COMP 3 //nombre de composantes couleur (RVB=>3)
-
-struct image{
-	short format;//P1 to P6
-	char* comments;
-	char* name;
-	int width;
-	int height;
-	int maxValue;
-	unsigned char* arrayRVB;
-	
-};
 
 //Charge une image depuis le disque dur
 Image* loadImage(char* fileName){
@@ -41,7 +31,7 @@ Image* loadImage(char* fileName){
 	
 	imgFile = fopen(fileName, "r");
 	if(imgFile==NULL){
-		fprintf(stderr, "Impossible d'ouvrir le fichier image.\n");
+		fprintf(stderr, "Impossible d'ouvrir le fichier image \"%s\".\n",fileName);
 		return NULL;
 	}
 	
@@ -274,20 +264,24 @@ bool imgAddName(Image* img, const char name[]){
 	return true;
 }
 
+
+
 //Fonction de test à supprimer
+/*
 int main(int argc, char** argv){
-	Image* test = loadImage("../images/Clown.256.ppm");
-	
-	strcpy(test->name, "../images/Clown.257.ppm");
+	Image* test = loadImage("/home/barti/Documents/IMAC/C/IMAGIMP/images/Clown.256.ppm");
+	if(test == NULL) return -1;
+	strcpy(test->name, "/home/barti/Documents/IMAC/C/IMAGIMP/images/Clown.257.ppm");
 	saveImage(test);
 	
 	freeImage(test);
 	
-	test = loadImage("../images/Clown.257.ppm");
+	test = loadImage("/home/barti/Documents/IMAC/C/IMAGIMP/images/Clown.257.ppm");
+	Lut* lt = createLut(test->arrayRVB, test->width*test->height*3, test->maxValue, INVERT);
 
 	if(test)
-		initGLIMAGIMP(test->width,test->height,test->arrayRVB);
+		initGLIMAGIMP(test->width,test->height,lt->outputArrayRVB);
 	free(test);
 	
 	return 0;
-}
+}*/

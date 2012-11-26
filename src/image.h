@@ -1,7 +1,16 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 #include "utils.h"
-typedef struct image Image;
+typedef struct image{
+	short format;//P1 to P6
+	char* comments;
+	char* name;
+	int width;
+	int height;
+	int maxValue;
+	unsigned char* arrayRVB;
+	
+}Image;
 
 Image* createEmptyImg(int w, int h);
 Image* loadImage(char* fileName);
