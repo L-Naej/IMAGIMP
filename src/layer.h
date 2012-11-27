@@ -32,13 +32,11 @@ typedef struct layerList{
 /**
  * Créé un layer avec
  * @param source l'image source du layer
- * @param previousLayer le layer en dessous de lui, passer NULL
- * pour indiquer que ce layer n'a pas de layer en dessous de lui.
  * @param opa le paramètre d'opacité initial du calque
  * @param operation l'operation que va utiliser le calque pour
  * se lier au calque en dessous de lui (somme ou multplication)
  */
-Layer* createLayer(Image* source, Layer* previousLayer, double opa, LAYER_OP operation);
+Layer* createLayer(Image* source, double opa, LAYER_OP operation);
 
 /**
  * Libère la mémoire du layer pointé par l
@@ -56,6 +54,8 @@ void dumpLayer(Layer* l);
 
 /**
  * NOTE GENERALE SUR LES LISTES :
+ * Une layer ne peut appartenir qu'à une seule liste. Sinon le
+ * comportement est indéterminé.
  * Le curseur démarre en dehors de la liste (cursor==NULL) et s'arrête sur le
  * dernier élément de la liste. C'est à dire que :
  * Si le curseur a été remis en première position,
@@ -149,6 +149,9 @@ void insertBeforeLayer(LayerList* list, Layer* lToInsert);
 
 /**
  * Positionne le curseur en tête de liste (donc à NULL).
+ * Attention! : un insertAfterLayer() après un appel à cette fonction
+ * positionnera le nouveau Layer en tête de liste (et non en seconde
+ * position). insertBeforeLayer() fera de même.
  */
 void goToHeadLayer(LayerList* list);
 

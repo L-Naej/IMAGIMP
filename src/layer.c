@@ -6,7 +6,7 @@
  */
 int cntLayerId = 0;
 
-Layer* createLayer(Image* source, Layer* previousLayer, double opa, LAYER_OP operation){
+Layer* createLayer(Image* source, double opa, LAYER_OP operation){
 	if(source == NULL) return NULL;
 	
 	Layer* l = (Layer*) malloc(sizeof(Layer));
@@ -16,13 +16,8 @@ Layer* createLayer(Image* source, Layer* previousLayer, double opa, LAYER_OP ope
 	l->imgSource = source;
 	l->opacity = opa;
 	l->operation = operation;
-	l->previousLayer = previousLayer;
+	l->previousLayer = NULL;
 	l->nextLayer = NULL;
-	
-	//Ce layer (l) est le successeur d'un autre layer (celui qui le précède)
-	if(l->previousLayer != NULL){
-		l->previousLayer->nextLayer = l;
-	}
 	
 	return l;
 }
@@ -133,7 +128,10 @@ int layerListCountElem(LayerList* list){
 	int nbLayers = 0;
 	if(list == NULL) return nbLayers;
 	
+	Layer* savedCursor = list->cursor;
+	goToHeadLayer(list);
 	while(nextLayer(list) != NULL) nbLayers++;
+	list->cursor = savedCursor;
 	
 	return nbLayers;
 }
@@ -154,6 +152,7 @@ void insertHeadLayer(LayerList* list, Layer* l){
 	
 	l->previousLayer = NULL;
 	l->nextLayer = list->head;
+	list->head->previousLayer = l;
 	list->head = l;
 	
 	list->nbLayers++;
@@ -167,6 +166,7 @@ void insertBottomLayer(LayerList* list, Layer* l){
 	} 
 	
 	l->previousLayer = list->bottom;
+	list->bottom->nextLayer = l;
 	l->nextLayer = NULL;
 	list->bottom = l;
 	
@@ -176,17 +176,37 @@ void insertBottomLayer(LayerList* list, Layer* l){
 void insertAfterLayer(LayerList* list, Layer* lToInsert){
 	if(list == NULL) return;
 	
-	//On relie lToInsert à son voisin de droite
-	lToInsert->nextLayer = list->cursor->nextLayer;
-	lToInsert->nextLayer->previousLayer = lToInsert;
+	//-------On relie lToInsert à son voisin de droite
 	
-	//On relie lToInsert à son voisin de gauche
-	lToInsert->previousLayer = list->cursor;
-	list->cursor->nextLayer = lToInsert;
+	//Cas spécial : on a inséré après la tête de liste
+	if(list->cursor == NULL){
+		lToInsert->nextLayer = list->head;
+	}
+	else{
+		lToInsert->nextLayer = list->cursor->nextLayer;
+	}
 	
 	//Cas spécial : on a inséré après le dernier élément
 	if(list->cursor == list->bottom){
+		lToInsert->nextLayer = NULL;
 		list->bottom = lToInsert;
+	}
+	else{
+		lToInsert->nextLayer->previousLayer = lToInsert;
+	}
+	
+	//On relie lToInsert à son voisin de gauche
+	lToInsert->previousLayer = list->cursor;
+	
+	
+	//----------Cas spécial : on a inséré après la tête de liste 
+	//(donc pas de voisin de gauche)
+	if(list->cursor == NULL){
+		//Nouvelle tête de liste
+		list->head = lToInsert;
+	}
+	else{
+		list->cursor->nextLayer = lToInsert;
 	}
 	
 	list->nbLayers++;
@@ -196,17 +216,28 @@ void insertBeforeLayer(LayerList* list, Layer* lToInsert){
 	if(list == NULL) return;
 	
 	//On relie lToInsert à son voisin de gauche
-	lToInsert->previousLayer = list->cursor->previousLayer;
-	lToInsert->previousLayer->nextLayer = lToInsert;
+	
+	//Cas spécial : on est au niveau de la tête OU en tête de liste
+	if(list->cursor == NULL || list->cursor == list->head){
+		lToInsert->previousLayer = NULL;
+	}
+	else{
+		lToInsert->previousLayer = list->cursor->previousLayer;
+		lToInsert->previousLayer->nextLayer = lToInsert;
+	}
 	
 	//On relie lToInsert à son voisin de droite
-	lToInsert->nextLayer = list->cursor;
-	list->cursor->previousLayer = lToInsert;
-	
-	//Cas spécial: on a inséré avant la tête
-	if(list->cursor == list->head){
+	//Cas spécial: on a inséré avant la tête OU en tête de liste
+	if(list->cursor == NULL || list->cursor == list->head){
+		lToInsert->nextLayer = list->head;
+		list->head->previousLayer = lToInsert;
 		list->head = lToInsert;
 	}
+	else{
+		lToInsert->nextLayer = list->cursor;
+		list->cursor->previousLayer = lToInsert;
+	}
+
 	
 	list->nbLayers++;
 }
@@ -259,6 +290,7 @@ Layer* delLayerByPosition(LayerList* list, int position){
 		
 	Layer* theLayer = getLayerByPosition(list, position);
 	
+	//nbLayers-- est fait dans delLayerInList
 	return delLayerInList(list, theLayer);
 }
 
@@ -312,6 +344,7 @@ Layer* delLayerInList(LayerList* list, Layer* theLayer){
 		theLayer->previousLayer = NULL;
 	}	
 	
+	list->nbLayers--;
 	return theLayer;
 }
 
