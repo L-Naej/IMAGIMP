@@ -1,24 +1,18 @@
 #include "image.h"
 #include "utils.h"
-#include "../lib/include/interface.h"
+#include "lut.h"
+#include <interface.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define MAX_LINE_LENGTH 70
 #define N_HEADER_DATALINE 3
+#define DEFAULT_MAX_VAL 255
+#define NB_COL_COMP 3 //nombre de composantes couleur (RVB=>3)
 
-struct image{
-	short format;//P1 to P6
-	char* comments;
-	char* name;
-	int width;
-	int height;
-	int maxValue;
-	unsigned char* arrayRVB;
-	
-};
-
+//Charge une image depuis le disque dur
 Image* loadImage(char* fileName){
 	if(fileName == NULL){
 		fprintf(stderr, "Le nom du fichier image est vide.\n");
@@ -27,18 +21,17 @@ Image* loadImage(char* fileName){
 	
 	FILE* imgFile = NULL;
 	Image* img = NULL;
-	char* comments = NULL;
 	
 	char currentTxt[MAX_LINE_LENGTH];
 	unsigned char currentPix;
 	
 	long position = 0;
 	short ctr = 0;
-	long int i, j,nPix;
+	long int i, nPix;
 	
 	imgFile = fopen(fileName, "r");
 	if(imgFile==NULL){
-		fprintf(stderr, "Impossible d'ouvrir le fichier image.\n");
+		fprintf(stderr, "Impossible d'ouvrir le fichier image \"%s\".\n",fileName);
 		return NULL;
 	}
 	
@@ -104,7 +97,7 @@ Image* loadImage(char* fileName){
 	
 	/*On commence par le dernier pixel (image stockées 'à l'envers' avec le 
 	haut de l'image en bas du tableau). On décale de trois pour prendre les composantes dans le bon ordre*/
-	for(i =(nPix*3)-3; i >= 0; i=i-3){		
+	for(i =(nPix*NB_COL_COMP)-NB_COL_COMP; i >= 0; i=i-NB_COL_COMP){		
 		readNUchar(&currentPix, 1, imgFile);
 		img->arrayRVB[i] = currentPix;
 		readNUchar(&currentPix, 1, imgFile);
@@ -124,9 +117,10 @@ Image* loadImage(char* fileName){
  */
 void detectWH(const char* text, int* w, int* h){
 	if(text==NULL)return;
-	//On considère que la taille max est 9999x9999 (soit 4 carac' + \0)
+	//On considère que largeur et hauteur max = 9999 donc 4 caractères + \0
 	char sW[5]; char sH[5];
 	short i = 0, j = 0;
+	
 	
 	sW[4] = sH[4] = '\0';
 	int sText = strlen(text);
@@ -145,16 +139,20 @@ void detectWH(const char* text, int* w, int* h){
 	*h = atoi(sH);
 }
 
+//Libère une image en mémoire pointée par img
 void freeImage(Image* img){
 	free(img->comments);
 	free(img->arrayRVB);
 	free(img);
 }
 
+//Sauvegarde une image sur le disque dur
 bool saveImage(Image* img){
 	FILE* imgFile = NULL;
-	char format[4], dim[4+1+4], maxVal[4];
-	long nPix,i;
+	//Format : P+num+\n+\0; dim : largeur+ +hauteur+\0
+	//Maxval : 999+\0
+	char format[4], dim[4+1+4+1], maxVal[4];
+	long nPix;
 	
 	if(img == NULL || img->arrayRVB == NULL){
 		fprintf(stderr,"Image nulle ou vide de pixels.\n");
@@ -210,12 +208,12 @@ bool saveImage(Image* img){
 	}
 	
 	//On inverse le tableau avant de l'écrire
-    	invertPPMArray(img->arrayRVB,nPix*3);
+    	invertPPMArray(img->arrayRVB,nPix*NB_COL_COMP);
     	
-	writeNUchar(img->arrayRVB, nPix*3, imgFile);
+	writeNUchar(img->arrayRVB, nPix*NB_COL_COMP, imgFile);
 	
 	//On remet le tableau dans le bon sens après l'avoir écrit
-    	invertPPMArray(img->arrayRVB,nPix*3);
+    	invertPPMArray(img->arrayRVB,nPix*NB_COL_COMP);
     	
 	fflush(imgFile);
 	
@@ -225,30 +223,65 @@ bool saveImage(Image* img){
 	return true;
 }
 
-Image* createEmptyImg(){
+//Créé une image vide noire (tous les pixels à 0) de dimension w*h
+Image* createEmptyImg(int w, int h){
 	Image* img = (Image*) malloc(sizeof(Image));
-	if(img != NULL){
-		img->comments = NULL;
-		img->name = NULL;
-		img->arrayRVB = NULL;
-	}
+	
+	if(img == NULL) return NULL;
+	
+	img->name = NULL;
+	img->comments = NULL;
+	
+	img->width = w;
+	img->height = h;
+	img->maxValue = DEFAULT_MAX_VAL;
+	
+	long int nPix = w*h*NB_COL_COMP;
+	
+	img->arrayRVB = (unsigned char*) calloc(nPix,sizeof(unsigned char));
+	
 	return img;
-
 }
 
-//Fonction de test à supprimer
-void main(void){
-	Image* test = loadImage("../images/Clown.256.ppm");
+//Ajoute ou modifie le nom d'une struct Image
+bool imgAddName(Image* img, const char name[]){
+	//strlen ne compte pas \0...
+	int size = strlen(name)+1;
+	//Au cas où l'allocation de nom échoue pour garder l'ancien
+	char* tPtr = NULL;
 	
-	strcpy(test->name, "../images/Clown.257.ppm");
+	if(img == NULL || name == NULL) return false;
+	
+
+	tPtr = (char*) malloc(size*sizeof(char));
+	if(tPtr == NULL) return false;
+	
+	free(img->name);
+	
+	img->name = tPtr;
+	strcpy(img->name, name);
+	
+	return true;
+}
+
+
+
+//Fonction de test à supprimer
+/*
+int main(int argc, char** argv){
+	Image* test = loadImage("/home/barti/Documents/IMAC/C/IMAGIMP/images/Clown.256.ppm");
+	if(test == NULL) return -1;
+	strcpy(test->name, "/home/barti/Documents/IMAC/C/IMAGIMP/images/Clown.257.ppm");
 	saveImage(test);
 	
 	freeImage(test);
 	
-	test = loadImage("../images/Clown.257.ppm");
+	test = loadImage("/home/barti/Documents/IMAC/C/IMAGIMP/images/Clown.257.ppm");
+	Lut* lt = createLut(test->arrayRVB, test->width*test->height*3, test->maxValue, INVERT);
 
 	if(test)
-		initGLIMAGIMP(test->width,test->height,test->arrayRVB);
+		initGLIMAGIMP(test->width,test->height,lt->outputArrayRVB);
 	free(test);
 	
-}
+	return 0;
+}*/

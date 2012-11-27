@@ -28,7 +28,7 @@ bool writeNUchar(unsigned char* t, int n, FILE* f){
 
 //Inverse un tableau au format ppm (RVB unsigned char)
 void invertPPMArray(unsigned char array[], long size){
-      long i = 0, temp = 0;
+      long i = 0;
      	unsigned char* invertedArray = (unsigned char*) malloc(size*sizeof(unsigned char));
       
       for(i = size-3; i >= 0; i=i-3){		
