@@ -1,5 +1,6 @@
 # $(BIN) est la nom du binaire genere
 BIN = bin/imagimp
+BINTEST = bin/test
 # FLAG
 FLAGS = -g -Wall
 #Répertoire d'include des librairies
@@ -10,12 +11,14 @@ LIBDIR = ./lib
 LIBS =  -lglimagimp -lglut -lGL -lGLU -lgdsl
 # Compilateur
 CC = gcc
-# Compilateur
-SRC = src/image.c src/utils.c src/lut.c src/lutfunction.c
+SRC = src/image.c src/utils.c src/lut.c src/lutfunction.c src/layer.c src/list.c
+SRCTEST = src/testListes.c $(SRC)
 
 all:
 	@$(CC) -o $(BIN) $(FLAGS) $(SRC) -I$(INCLUDES) -L$(LIBDIR) $(LIBS) 
-	@echo 'Done'
-
+	
+test:
+	@$(CC) -o$(BINTEST) $(FLAGS) $(SRCTEST) -I$(INCLUDES) -L$(LIBDIR) $(LIBS)
+	@$(BINTEST) images/Clown.256.ppm
 clean:
 	rm -f $(BIN)

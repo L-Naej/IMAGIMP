@@ -267,21 +267,13 @@ bool imgAddName(Image* img, const char name[]){
 
 
 //Fonction de test à supprimer
-/*
+
 int main(int argc, char** argv){
 	Image* test = loadImage("/home/barti/Documents/IMAC/C/IMAGIMP/images/Clown.256.ppm");
 	if(test == NULL) return -1;
-	strcpy(test->name, "/home/barti/Documents/IMAC/C/IMAGIMP/images/Clown.257.ppm");
-	saveImage(test);
-	
-	freeImage(test);
-	
-	test = loadImage("/home/barti/Documents/IMAC/C/IMAGIMP/images/Clown.257.ppm");
-	Lut* lt = createLut(test->arrayRVB, test->width*test->height*3, test->maxValue, INVERT);
 
-	if(test)
-		initGLIMAGIMP(test->width,test->height,lt->outputArrayRVB);
+	initGLIMAGIMP(test->width,test->height,test->arrayRVB);
 	free(test);
 	
 	return 0;
-}*/
+}

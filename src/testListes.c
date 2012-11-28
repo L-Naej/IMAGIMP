@@ -1,28 +1,27 @@
 #include "testListes.h"
 #include "layer.h"
+#include "list.h"
 #include "image.h"
 #include <stdlib.h>
 
 //Variables globales de test
-Image* test ;
-Layer* l1, *l2, *l3, *l4, *lInsert1, *lInsert2,*lInsert3, *lInsert4, *lInsert5, *lInsert6, *lInsert7, *lInsert8 ;
-LayerList* ll1, *ll2;
-
-void main(void){
-	test = loadImage("../images/Clown.256.ppm");
+Image* test= NULL ;
+Layer* l1 = NULL, *l2= NULL, *l3= NULL, *l4= NULL, *lInsert1= NULL, *lInsert2= NULL,*lInsert3= NULL, *lInsert4= NULL, *lInsert5= NULL, *lInsert6= NULL, *lInsert7= NULL, *lInsert8 = NULL;
+List* ll1= NULL, *ll2= NULL;
+Cell *c1= NULL,*c2= NULL,*c3= NULL,*c4= NULL,*c5= NULL,*c6= NULL,*c7= NULL,*c8= NULL,*c9= NULL,*c10= NULL,*c11= NULL,*c12= NULL;
+int main(int argc, char** argv){
+	if(argc == 2){
+		test = loadImage(argv[1]);
+	}
+	else{
+		test = loadImage("../images/Clown.256.ppm");
+	}
+	if(test==NULL)return -1;
 
 	l1 = createLayer(test, 0.5, SUM);
 	l2 = createLayer(test, 0.1, MULTIPLICATION);
 	l3 = createLayer(test, 1.0, SUM);
 	l4 = createLayer(test, 0.8, SUM);
-	
-	//On connecte à la main
-	l1->nextLayer = l2;
-	l2->previousLayer = l1;
-	l2->nextLayer = l3;
-	l3->previousLayer = l2;
-	l3->nextLayer = l4;
-	l4->previousLayer = l3;
 	
 	//Ceux là ne seront pas connectés mais rajoutés à la main dans la liste
 	lInsert1 = createLayer(test, 0.8, SUM);
@@ -33,217 +32,302 @@ void main(void){
 	lInsert6 = createLayer(test, 0.8, SUM);
 	lInsert7 = createLayer(test, 0.8, SUM);
 	lInsert8 = createLayer(test, 0.8, SUM);
+	
+	c1 = createCell(l1);
+	c2  = createCell(l2);
+	c3  = createCell(l3);
+	c4  = createCell(l4);
+	
+	c5  = createCell(lInsert1);
+	c6  = createCell(lInsert2);
+	c7  = createCell(lInsert3);
+	c8  = createCell(lInsert4);
+	c9  = createCell(lInsert5);
+	c10 = createCell(lInsert6);
+	c11 = createCell(lInsert7);
+	c12 = createCell(lInsert8);
+	
+	//On connecte à la main
+	c1->next = c2;
+	c2->previous = c1;
+	c2->next = c3;
+	c3->previous = c2;
+	c3->next = c4;
+	c4->previous = c3;
+
 
 	ll1 = NULL;
 	ll2 = NULL;
 	testCreate();
+	testCountElem();
+	testIsEmpty();
 	testGoCurrentNextPreviousHeadBottom();
 	testInsert();
 	
-	testPosition();//En cours
+	//testPosition();
+	
+	return 0;
 
 }
 
 void testCreate(){
 	//Test création
-	ll1 = createLayerList(l1);
-	ll2 = createEmptyLayerList();
+	ll1 = createList(LAYER, c1);
+	ll2 = createEmptyList(LAYER);
 	
-	dumpLayerList(ll1);
-	dumpLayerList(ll2);
+	dumpList(ll1);
+	dumpList(ll2);
+}
+
+void testCountElem(){
+	printf("Test ListCountElem on normal list.\n");
+	if(listCountElem(ll1) != 4){
+		printf("Test ListCountElem on normal list failed.\n");
+		exit(-1);
+	}
+	printf("=>OK\n");
+	
+	printf("Test ListCountElem on empty list.\n");
+	if(listCountElem(ll2) != 0){
+		printf("Test ListCountElem on empty list failed.\n");
+		exit(-1);
+	}
+	printf("=>OK\n");
+}
+
+void testIsEmpty(){
+	printf("Test isListEmpty on an empty list.\n");
+	if(!isListEmpty(ll2)){
+		printf("Test isListEmpty on an empty list failed.\n");
+		exit(-1);
+	}
+	printf("=>OK\n");
+	printf("Test isListEmpty on a non empty list.\n");
+	if(isListEmpty(ll1)){
+		printf("Test isListEmpty on a non empty list failed.\n");
+		exit(-1);
+	}
+	printf("=>OK\n");
 }
 
 void testGoCurrentNextPreviousHeadBottom(){
 	
-	fprintf(stderr, "Test goToHead\n");
-	goToHeadLayer(ll1);
+	printf( "Test goToHead\n");
+	goToHeadList(ll1);
 	if(ll1->cursor != NULL){
-		fprintf(stderr, "Test goToHead failed.\n");
+		printf( "Test goToHead failed.\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 	
-	fprintf(stderr, "Test previousLayer from head\n");
-	if(previousLayer(ll1) != NULL){
-		fprintf(stderr,"Test previousLayer from head failed.\n");
+	printf( "Test previous from head\n");
+	if(previousCell(ll1) != NULL){
+		printf("Test previous from head failed.\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 	
-	fprintf(stderr, "Test currentLayer from head.\n");
-	if(currentLayer(ll1) != NULL){
-		fprintf(stderr, "Test currentLayer from head failed.\n");
+	printf( "Test currentCell from head.\n");
+	if(currentCell(ll1) != NULL){
+		printf( "Test currentCell from head failed.\n");
 		exit(-1);
 	
 	}
 
-	fprintf(stderr,"Test nextLayer from head.\n");
-	if(nextLayer(ll1) != l1){
-		fprintf(stderr,"Test nextLayer from head failed.\n");
+	printf("Test next from head.\n");
+	if(nextCell(ll1) != c1){
+		printf("Test next from head failed.\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 	
-	fprintf(stderr,"Test previousLayer from first position.\n");
-	if(previousLayer(ll1) != NULL){
-		fprintf(stderr,"Test previousLayer from first position failed.\n");
+	printf("Test previous from first position.\n");
+	if(previousCell(ll1) != NULL){
+		printf("Test previous from first position failed.\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 	
-	ll1->cursor = l1;
+	ll1->cursor = c1;
 	
-	fprintf(stderr, "Test normal currentLayer.\n");
-	if(currentLayer(ll1) != l1){
-		fprintf(stderr, "Test normal currentLayer failed.\n");
+	printf( "Test normal currentCell.\n");
+	if(currentCell(ll1) != c1){
+		printf( "Test normal currentCell failed.\n");
 		exit(-1);
 	
 	}
+	printf( "=>OK\n");
 	
-	fprintf(stderr,"Test normal nextLayer.\n");
-	if(nextLayer(ll1) != l2){
-		fprintf(stderr,"Test normal nextLayer failed.\n");
+	printf("Test normal next.\n");
+	if(nextCell(ll1) != c2){
+		printf("Test normal next failed.\n");
 		exit(-1);		
 	}
+	printf( "=>OK\n");
 	
-	fprintf(stderr,"Test normal previousLayer.\n");
-	if(previousLayer(ll1) != l1){
-		fprintf(stderr,"Test normal previousLayer failed.\n");
+	printf("Test normal previous.\n");
+	if(previousCell(ll1) != c1){
+		printf("Test normal previous failed.\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 	
-	goToBottomLayer(ll1);
+	goToBottomCell(ll1);
 
-	fprintf(stderr,"Test goToBottom.\n");
-	dumpLayer(ll1->cursor);
-	if(ll1->cursor != l4){
-		fprintf(stderr,"Test goToBottom failed.\n");
+	printf("Test goToBottom.\n");
+	if(ll1->cursor != c4){
+		printf("Test goToBottom failed.\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 	
-	fprintf(stderr, "Test currentLayer from bottom.\n");
-	if(currentLayer(ll1) != l4){
-		fprintf(stderr, "Test currentLayer from bottom failed.\n");
+	printf( "Test currentCell from bottom.\n");
+	if(currentCell(ll1) != c4){
+		printf( "Test currentCell from bottom failed.\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 	
-	fprintf(stderr, "Test nextLayer from bottom.\n");
-	if(nextLayer(ll1) != NULL){
-		fprintf(stderr, "Test nextLayer from bottom failed.\n");
+	printf( "Test next from bottom.\n");
+	if(nextCell(ll1) != NULL){
+		printf( "Test next from bottom failed.\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 	
-	fprintf(stderr, "Test previousLayer from bottom.\n");
-	if(previousLayer(ll1) != l3){
-		fprintf(stderr, "Test previousLayer from bottom failed.\n");
+	printf( "Test previous from bottom.\n");
+	if(previousCell(ll1) != c3){
+		printf( "Test previous from bottom failed.\n");
 		exit(-1);
 	}	
+	printf( "=>OK\n");
 }	
 	
 void testInsert(){
-	fprintf(stderr,"Test InsertHead\n");
+	printf("Test InsertHead\n");
 	
-	insertHeadLayer(ll1, lInsert1);
+	insertHeadCell(ll1, c5);
 	
-	if(ll1->head != lInsert1){
-		fprintf(stderr, "Test insertHeadLayer failed\n");
+	if(ll1->head != c5){
+		printf( "Test insertHeadCell failed\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
+	printf("Test insertbottom\n");
 	
-	fprintf(stderr,"Test insertbottom\n");
+	insertBottomCell(ll1,c6);
 	
-	insertBottomLayer(ll1,lInsert2);
-	
-	if(ll1->bottom != lInsert2 || l4->nextLayer != lInsert2 || lInsert2->previousLayer != l4){
-		fprintf(stderr, "Test insertbottom failed\n");
+	if(ll1->bottom != c6 || c4->next != c6 || c6->previous != c4){
+		printf( "Test insertbottom failed\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 	
-	goToBottomLayer(ll1);
+	goToBottomCell(ll1);
 	
-	fprintf(stderr, "Test insertAfterLayer cursor on bottom\n");
-	insertAfterLayer(ll1, lInsert3);
-	if(ll1->bottom != lInsert3 || lInsert2->nextLayer != lInsert3 || lInsert3->previousLayer != lInsert2 ){
-		fprintf(stderr, "Test insertAfterLayer cursor on bottom failed\n");
+	printf( "Test insertAfterCell cursor on bottom\n");
+	insertAfterCell(ll1, c7);
+	if(ll1->bottom != c7 || c6->next != c7 || c7->previous != c6 ){
+		printf( "Test insertAfterCell cursor on bottom failed\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 	
-	fprintf(stderr, "Test insertAfterLayer cursor normal\n");
-	ll1->cursor = l2;
+	printf( "Test insertAfterCell cursor normal\n");
+	ll1->cursor = c2;
 	
-	insertAfterLayer(ll1, lInsert4);
-	if(nextLayer(ll1) != lInsert4 || lInsert4->previousLayer != l2 || l2->nextLayer != lInsert4){
-		fprintf(stderr, "Test insertAfterLayer cursor normal failed\n");
+	insertAfterCell(ll1, c8);
+	if(nextCell(ll1) != c8 || c8->previous != c2 || c2->next != c8){
+		printf( "Test insertAfterCell cursor normal failed\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 	
-	fprintf(stderr, "Test insertAfterLayer cursor on head\n");
-	goToHeadLayer(ll1);
+	printf( "Test insertAfterCell cursor on head\n");
+	goToHeadList(ll1);
 
-	insertAfterLayer(ll1, lInsert5);
-	if(nextLayer(ll1) != lInsert5 || lInsert5->nextLayer != lInsert1 || lInsert1->previousLayer != lInsert5 ){
-		fprintf(stderr, "Test insertAfterLayer cursor on head failed\n");
+	insertAfterCell(ll1, c9);
+	if(nextCell(ll1) != c9 || c9->next != c5 || c5->previous != c9 ){
+		printf( "Test insertAfterCell cursor on head failed\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 
-	fprintf(stderr, "Test insertBeforeLayer cursor on head\n");
+	printf( "Test insertBeforeCell cursor on head\n");
 	
-	goToHeadLayer(ll1);
-	insertBeforeLayer(ll1, lInsert6);
+	goToHeadList(ll1);
+	insertBeforeCell(ll1, c10);
 	
-	if(nextLayer(ll1) != lInsert6 || lInsert6->nextLayer != lInsert5 || lInsert5->previousLayer != lInsert6){
-		fprintf(stderr,"Test insertBeforeLayer cursor on head failed\n");
+	if(nextCell(ll1) != c10 || c10->next != c9 || c9->previous != c10){
+		printf("Test insertBeforeCell cursor on head failed\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 	
-	fprintf(stderr, "Test insertBeforeLayer cursor normal \n");
+	printf( "Test insertBeforeCell cursor normal \n");
 	
-	ll1->cursor = l3;
-	insertBeforeLayer(ll1, lInsert7);
+	ll1->cursor = c3;
+	insertBeforeCell(ll1, c11);
 	
-	if(previousLayer(ll1) != lInsert7 || lInsert7->nextLayer != l3 || l3->previousLayer != lInsert7){
-		fprintf(stderr,"Test insertBeforeLayer cursor normal failed\n");
+	if(previousCell(ll1) != c11 || c11->next != c3 || c3->previous != c11){
+		printf("Test insertBeforeCell cursor normal failed\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 	
-	fprintf(stderr, "Test insertBeforeLayer cursor on bottom\n");
+	printf( "Test insertBeforeCell cursor on bottom\n");
 	
-	goToBottomLayer(ll1);
-	insertBeforeLayer(ll1, lInsert8);
+	goToBottomCell(ll1);
+	insertBeforeCell(ll1, c12);
 	
-	if(previousLayer(ll1) != lInsert8 || lInsert8->nextLayer != ll1->bottom || ll1->bottom->previousLayer != lInsert8){
-		fprintf(stderr,"Test insertBeforeLayer cursor on bottom failed\n");
+	if(previousCell(ll1) != c12 || c12->next != ll1->bottom 
+	|| ll1->bottom->previous != c12){
+		printf("Test insertBeforeCell cursor on bottom failed\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 }
 
 void testPosition(){
 	
-	fprintf(stderr, "Test getLayerByPosition\n");
+	printf( "Test getCellByPosition\n");
 	
-	if(getLayerByPosition(ll1,1) != ll1->head){
-		fprintf(stderr, "Test getLayerByPosition (pos 1) failed.\n");
+	if(getCellByPosition(ll1,1) != ll1->head){
+		printf( "Test getCellByPosition (pos 1) failed.\n");
 		exit(-1);	
 	}
 	
-	if(getLayerByPosition(ll1, 12) != goToBottomLayer(ll1)){
-		fprintf(stderr, "Test getLayerByPosition (pos 12 (bottom)) failed.\n");
+	if(getCellByPosition(ll1, 12) != goToBottomCell(ll1)){
+		printf( "Test getCellByPosition (pos 12 (bottom)) failed.\n");
 		exit(-1);
 	}
 	
-	if(getLayerByPosition(ll1, 4) != l1){
-		fprintf(stderr, "Test getLayerByPosition (pos 4 (random position)) failed.\n");
+	if(getCellByPosition(ll1, 4) != c1){
+		printf( "Test getCellByPosition (pos 4 (random position)) failed.\n");
+		exit(-1);
+	}
+	printf( "=>OK\n");
+	
+	printf( "Test delCellByPosition\n");
+	int initSize = ll1->size;
+	if(delCellByPosition(ll1, 1) != c10 || ll1->head == c10
+	|| ll1->head != c9 || ll1->size != (initSize-1)){
+		printf( "Test delCellByPosition (head) failed\n");
 		exit(-1);
 	}
 	
-	fprintf(stderr, "Test delLayerByPosition\n");
-	int initSize = ll1->nbLayers;
-	if(delLayerByPosition(ll1, 1) != lInsert6 || ll1->head == lInsert6 || ll1->head != lInsert5 || ll1->nbLayers != (initSize-1)){
-		fprintf(stderr, "Test delLayerByPosition (head) failed\n");
+	if(delCellByPosition(ll1, ll1->size) != c7 
+	|| ll1->bottom == c7 || ll1->bottom != c12){
+		printf( "Test delCellByPosition (bottom) failed\n");
 		exit(-1);
 	}
 	
-
-	if(delLayerByPosition(ll1, ll1->nbLayers) != lInsert8 || ll1->bottom == lInsert8 || ll1->bottom != lInsert2){
-		fprintf(stderr, "Test delLayerByPosition (bottom) failed\n");
+	if(delCellByPosition(ll1, ll1->size/2) != c8 
+	|| c2->next != c11 || c11->previous != c2 ){
+		printf( "Test delCellByPosition (random) failed\n");
 		exit(-1);
 	}
+	printf( "=>OK\n");
 }
 	
 	
