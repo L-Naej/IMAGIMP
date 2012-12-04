@@ -11,7 +11,7 @@
  */
 Lut* createLut(unsigned char* inputArray, long int size, int maxVal, LUT_FUNCTION lF){
 	if(inputArray == NULL) return NULL;
-	
+	int val=0;
 	Lut* lt = (Lut*) malloc(sizeof(Lut));
 	lt->inputArrayRVB = inputArray;
 	
@@ -29,6 +29,17 @@ Lut* createLut(unsigned char* inputArray, long int size, int maxVal, LUT_FUNCTIO
 	switch(lF){
 		case INVERT : invertLut(lt);
 		break;
+		case ADDLUM : addLum (lt,val);
+		break;
+		case DIMLUM : addLum (lt,val);
+		break;
+		case ADDCON : addLum (lt,val);
+		break;
+		case DIMCON : addLum (lt,val);
+		break;
+		/*case SEPIA : sepia (lt);
+		break;
+		*/
 		//Ajouter les autres
 	}
 	

@@ -6,8 +6,8 @@ typedef enum lut_function{
 	ADDLUM,
 	DIMLUM,
 	ADDCON,
-	DIMCON,
-	SEPIA
+	DIMCON
+	//SEPIA
 } LUT_FUNCTION;
 
 typedef struct lut{
