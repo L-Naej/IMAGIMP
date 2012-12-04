@@ -1,4 +1,4 @@
-IMAGIMP
+Traitement d'image
 =======
 
-Projet C traitement d'image IMAC1
+Le méga projet (à renommer quand il sera fini))
