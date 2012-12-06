@@ -56,7 +56,7 @@ List* createEmptyList(LIST_TYPE type);
  * cf NOTE GENERALE).
  * @param head le premier élément de la liste créée.
  */
-List* createList(LIST_TYPE type, Cell* head);
+List* createList(LIST_TYPE type, void* headUserData);
 
 /**
  * Renvoie le Cell courrant de la liste list
@@ -98,7 +98,7 @@ bool isListEmpty(List* list);
  * Cell avec d'autres.
  * Ne déplace pas le curseur.
  */
-void insertHeadCell(List* list, Cell* c);
+void insertHeadCell(List* list, void* userData);
 
 /**
  * Insère un Cell en fin de liste.
@@ -106,7 +106,7 @@ void insertHeadCell(List* list, Cell* c);
  * Cell avec d'autres.
  * Ne déplace pas le curseur.
  */
-void insertBottomCell(List* list, Cell* c);
+void insertBottomCell(List* list, void* userData);
 
 /**
  * Insère le Cell lToInsert à la suite du curseur.
@@ -114,7 +114,7 @@ void insertBottomCell(List* list, Cell* c);
  * Cell avec d'autres.
  * Ne déplace pas le curseur.
  */
-void insertAfterCell(List* list, Cell* cToInsert);
+void insertAfterCell(List* list, void* userData);
 
 /**
  * Insère le Cell lToInsert avant le curseur.
@@ -122,7 +122,7 @@ void insertAfterCell(List* list, Cell* cToInsert);
  * Cell avec d'autres.
  * Ne déplace pas le curseur.
  */
-void insertBeforeCell(List* list, Cell* cToInsert);
+void insertBeforeCell(List* list, void* userData);
 
 /**
  * Positionne le curseur en tête de liste (donc à NULL).

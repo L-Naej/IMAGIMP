@@ -8,7 +8,7 @@ INCLUDES = ./lib/include
 # Répertoire des librairies
 LIBDIR = ./lib
 # Librairies
-LIBS =  -lglimagimp -lglut -lGL -lGLU -lgdsl
+LIBS =  -lglimagimp -lglut -lGL -lGLU
 # Compilateur
 CC = gcc
 SRC = src/image.c src/utils.c src/lut.c src/lutfunction.c src/layer.c src/list.c

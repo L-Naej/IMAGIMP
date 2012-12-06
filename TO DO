@@ -1,0 +1,14 @@
+
+TO DO LIST
+-------------------------
+
+-Modifier les fonctions d'ajout de cellule dans list.c/h pour 
+ qu'elles renvoie un pointeur vers la cellule créée (pour du debug principalement).
+ 
+-Mettre à jour les tests de liste suite à la modification des fonctions d'insertion.
+
+-Coder le parseur de ligne de commande pour avoir un premier prototype de programme qui permet de 
+	*créer un layer à partir de l'image passée en ligne de commande
+	*ajouter des layers 
+	*voir le résultat final en combinant les layers
+	

@@ -12,7 +12,6 @@
 #define DEFAULT_MAX_VAL 255
 #define NB_COL_COMP 3 //nombre de composantes couleur (RVB=>3)
 
-//Charge une image depuis le disque dur
 Image* loadImage(char* fileName){
 	if(fileName == NULL){
 		fprintf(stderr, "Le nom du fichier image est vide.\n");
@@ -111,10 +110,7 @@ Image* loadImage(char* fileName){
 	return img;
 }
 
-/**
- * Détecte la largeur et la hauteur de l'image contenues dans une
- * chaîne de caractère de la forme "largeur hauteur \n"
- */
+
 void detectWH(const char* text, int* w, int* h){
 	if(text==NULL)return;
 	//On considère que largeur et hauteur max = 9999 donc 4 caractères + \0
@@ -139,14 +135,13 @@ void detectWH(const char* text, int* w, int* h){
 	*h = atoi(sH);
 }
 
-//Libère une image en mémoire pointée par img
+
 void freeImage(Image* img){
 	free(img->comments);
 	free(img->arrayRVB);
 	free(img);
 }
 
-//Sauvegarde une image sur le disque dur
 bool saveImage(Image* img){
 	FILE* imgFile = NULL;
 	//Format : P+num+\n+\0; dim : largeur+ +hauteur+\0
@@ -223,9 +218,9 @@ bool saveImage(Image* img){
 	return true;
 }
 
-//Créé une image vide noire (tous les pixels à 0) de dimension w*h
 Image* createEmptyImg(int w, int h){
 	Image* img = (Image*) malloc(sizeof(Image));
+	int i;
 	
 	if(img == NULL) return NULL;
 	
@@ -239,11 +234,12 @@ Image* createEmptyImg(int w, int h){
 	long int nPix = w*h*NB_COL_COMP;
 	
 	img->arrayRVB = (unsigned char*) calloc(nPix,sizeof(unsigned char));
+	for(i=0; i < nPix; ++i)
+		img->arrayRVB[i] = DEFAULT_MAX_VAL;
 	
 	return img;
 }
 
-//Ajoute ou modifie le nom d'une struct Image
 bool imgAddName(Image* img, const char name[]){
 	//strlen ne compte pas \0...
 	int size = strlen(name)+1;

@@ -17,6 +17,22 @@ Layer* createLayer(Image* source, double opa, LAYER_OP operation){
 	l->opacity = opa;
 	l->operation = operation;
 	
+	lutList = NULL;
+	
+	return l;
+}
+
+Layer* createEmptyLayer(int w, int h){
+	Layer* l = (Layer*) malloc(sizeof(Layer));
+	if(l == NULL) return NULL;
+	
+	l->id = ++cntLayerId;
+	l->imgSource = createEmptyImg(w,h);
+	l->opacity = 0.0;
+	l->operation = MULTIPLICATION;
+	
+	lutList = NULL;
+	
 	return l;
 }
 
@@ -36,5 +52,42 @@ void dumpLayer(Layer* l){
 		case SUM : printf("SUM\n");
 		break;
 		case MULTIPLICATION : printf("MULTIPLICATION\n");
+		break;
 	}
 }
+
+
+bool addLut(Layer* lay, Lut* lt){
+	if(lay == NULL || lt == NULL)
+		return false;
+		
+	if(lay->lutList == NULL){
+		lay->lutList = createList(LUT, lt);
+	 	if(lay->lutList == NULL)
+	 		return false;
+	 	return true;
+	}
+	
+	insertBottomCell(lay->lutList, lt);
+	return true;
+}
+
+void setOpacity(Layer* lay, double newOpa){
+	if(lay == NULL) return;
+	lay->opacity = newOpa;
+}
+
+void setLayerOperation(Layer* lay, LAYER_OP newOp){
+	if(lay == NULL) return;
+	lay->operation = newOp;
+}
+
+
+
+
+
+
+
+
+
+
