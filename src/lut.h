@@ -19,7 +19,7 @@ typedef struct lut{
 	LUT_FUNCTION function;
 }Lut;
 
-Lut* createLut(unsigned char* inputArray, long int size, int maxVal, LUT_FUNCTION lF);
+Lut* createLut(unsigned char* inputArray, long int size, int maxVal, LUT_FUNCTION lF, unsigned char value);
 void freeLut(Lut* lt);
 
 #endif

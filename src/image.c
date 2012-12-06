@@ -81,8 +81,8 @@ Image* loadImage(char* fileName){
 	//Allocation mémoire pour les lignes de pixels
 	nPix = (img->width)*(img->height);
 	
-	img->arrayRVB = (unsigned char*) malloc(nPix*3*sizeof(unsigned char));//1px = 3 composantes
-	if(img->arrayRVB == NULL){
+	img->arrayRGB = (unsigned char*) malloc(nPix*3*sizeof(unsigned char));//1px = 3 composantes
+	if(img->arrayRGB == NULL){
 		free(img->comments);
 		free(img);
 	}
@@ -93,18 +93,16 @@ Image* loadImage(char* fileName){
 	fseek(imgFile,position, SEEK_SET);
 	
 	ctr = 0;
-	
-	/*On commence par le dernier pixel (image stockées 'à l'envers' avec le 
-	haut de l'image en bas du tableau). On décale de trois pour prendre les composantes dans le bon ordre*/
-	for(i =(nPix*NB_COL_COMP)-NB_COL_COMP; i >= 0; i=i-NB_COL_COMP){		
+		 
+	for(i =0; i < nPix*NB_COL_COMP; i++){		
 		readNUchar(&currentPix, 1, imgFile);
-		img->arrayRVB[i] = currentPix;
-		readNUchar(&currentPix, 1, imgFile);
-		img->arrayRVB[i+1] = currentPix;
-		readNUchar(&currentPix, 1, imgFile);
-		img->arrayRVB[i+2] = currentPix;
+		img->arrayRGB[i] = currentPix;
 	}
 	
+	//On stocke l'image inversée en mémoire
+	//pour qu'elle soit toute prête à être affichée
+	//par OpenGL
+	invertPPMArray(img->arrayRGB, img->width, img->height);
 	fclose(imgFile);
 	
 	return img;
@@ -138,7 +136,7 @@ void detectWH(const char* text, int* w, int* h){
 
 void freeImage(Image* img){
 	free(img->comments);
-	free(img->arrayRVB);
+	free(img->arrayRGB);
 	free(img);
 }
 
@@ -149,7 +147,7 @@ bool saveImage(Image* img){
 	char format[4], dim[4+1+4+1], maxVal[4];
 	long nPix;
 	
-	if(img == NULL || img->arrayRVB == NULL){
+	if(img == NULL || img->arrayRGB == NULL){
 		fprintf(stderr,"Image nulle ou vide de pixels.\n");
 		return false;
 	}
@@ -203,12 +201,12 @@ bool saveImage(Image* img){
 	}
 	
 	//On inverse le tableau avant de l'écrire
-    	invertPPMArray(img->arrayRVB,nPix*NB_COL_COMP);
+    	invertPPMArray(img->arrayRGB,img->width, img->height);
     	
-	writeNUchar(img->arrayRVB, nPix*NB_COL_COMP, imgFile);
+	writeNUchar(img->arrayRGB, nPix*NB_COL_COMP, imgFile);
 	
 	//On remet le tableau dans le bon sens après l'avoir écrit
-    	invertPPMArray(img->arrayRVB,nPix*NB_COL_COMP);
+    	invertPPMArray(img->arrayRGB,img->width, img->height);
     	
 	fflush(imgFile);
 	
@@ -233,9 +231,9 @@ Image* createEmptyImg(int w, int h){
 	
 	long int nPix = w*h*NB_COL_COMP;
 	
-	img->arrayRVB = (unsigned char*) calloc(nPix,sizeof(unsigned char));
+	img->arrayRGB = (unsigned char*) calloc(nPix,sizeof(unsigned char));
 	for(i=0; i < nPix; ++i)
-		img->arrayRVB[i] = DEFAULT_MAX_VAL;
+		img->arrayRGB[i] = DEFAULT_MAX_VAL;
 	
 	return img;
 }
@@ -265,10 +263,10 @@ bool imgAddName(Image* img, const char name[]){
 //Fonction de test à supprimer
 
 int main(int argc, char** argv){
-	Image* test = loadImage("/home/barti/Documents/IMAC/C/IMAGIMP/images/Clown.256.ppm");
+	Image* test = loadImage("images/Clown.256.ppm");
 	if(test == NULL) return -1;
 
-	initGLIMAGIMP(test->width,test->height,test->arrayRVB);
+	initGLIMAGIMP(test->width,test->height,test->arrayRGB);
 	free(test);
 	
 	return 0;

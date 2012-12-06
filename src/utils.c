@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "image.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -26,19 +27,19 @@ bool writeNUchar(unsigned char* t, int n, FILE* f){
 	return(n == writed);
 }
 
-//Inverse un tableau au format ppm (RVB unsigned char)
-void invertPPMArray(unsigned char array[], long size){
-      long i = 0;
-     	unsigned char* invertedArray = (unsigned char*) malloc(size*sizeof(unsigned char));
+//Inverse un tableau au format ppm (RGB unsigned char)
+void invertPPMArray(unsigned char array[], long int width, long int height){
+      long i = 0, j= 0;
+      long int nPix = width*height;
+     	unsigned char* invertedArray = (unsigned char*) malloc(nPix*NB_COL_COMP*sizeof(unsigned char));
       
-      for(i = size-3; i >= 0; i=i-3){		
-		
-		invertedArray[size-1-i-2] = array[i];
-		
-		invertedArray[size-1-i-1] = array[i+1];
-		
-		invertedArray[size-1-i] = array[i+2];
+      int k = 0;
+      
+	for(i = height*(width-1)*NB_COL_COMP; i >= 0; i = i - (width*NB_COL_COMP)){
+		for(j = 0; j < width*NB_COL_COMP; j++){
+			invertedArray[k++] = array[i+j];
+		}
 	}
 	
-	memcpy(array, invertedArray, size*sizeof(unsigned char));
+	memcpy(array, invertedArray, nPix*NB_COL_COMP*sizeof(unsigned char));
 }

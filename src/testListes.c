@@ -33,11 +33,14 @@ int main(int argc, char** argv){
 	lInsert7 = createLayer(test, 0.8, SUM);
 	lInsert8 = createLayer(test, 0.8, SUM);
 	
-	c1 = createCell(l1);
+	
 	c2  = createCell(l2);
 	c3  = createCell(l3);
 	c4  = createCell(l4);
 	
+	/*Ancienne version des listes,
+	la nouvelle ne demande pas de créer manuellement
+	les cellules.
 	c5  = createCell(lInsert1);
 	c6  = createCell(lInsert2);
 	c7  = createCell(lInsert3);
@@ -46,10 +49,12 @@ int main(int argc, char** argv){
 	c10 = createCell(lInsert6);
 	c11 = createCell(lInsert7);
 	c12 = createCell(lInsert8);
+	*/
 	
-	//On connecte à la main
-	c1->next = c2;
-	c2->previous = c1;
+	//On connecte à la main (puisque ce sont des tests sur les fonctions
+	//on ne peut pas utiliser les fonctions d'insertion)
+	//On connecte c1 et c2 lors de l'initialisation de la liste
+	//car c1 n'existe pas avant (voir testCreate()).
 	c2->next = c3;
 	c3->previous = c2;
 	c3->next = c4;
@@ -63,8 +68,10 @@ int main(int argc, char** argv){
 	testIsEmpty();
 	testGoCurrentNextPreviousHeadBottom();
 	testInsert();
+	testCountElemAfterInsert();
+	testIsEmpty();
 	
-	//testPosition();
+	testPosition();
 	
 	return 0;
 
@@ -72,7 +79,15 @@ int main(int argc, char** argv){
 
 void testCreate(){
 	//Test création
-	ll1 = createList(LAYER, c1);
+	ll1 = createList(LAYER, l1);
+	//On connecte la suite de la liste
+	c1 = ll1->head;
+	c1->next = c2;
+	c2->previous = c1;
+	//Du coup on doit indiquer la queue à la main
+	//et la taille de la liste à la main
+	ll1->bottom = c4;
+	ll1->size = 4;
 	ll2 = createEmptyList(LAYER);
 	
 	dumpList(ll1);
@@ -105,6 +120,22 @@ void testIsEmpty(){
 	printf("Test isListEmpty on a non empty list.\n");
 	if(isListEmpty(ll1)){
 		printf("Test isListEmpty on a non empty list failed.\n");
+		exit(-1);
+	}
+	printf("=>OK\n");
+}
+
+void testCountElemAfterInsert(){
+	printf("Test ListCountElem on normal list.\n");
+	if(listCountElem(ll1) != 12){
+		printf("Test ListCountElem on normal list failed.\n");
+		exit(-1);
+	}
+	printf("=>OK\n");
+	
+	printf("Test ListCountElem on empty list.\n");
+	if(listCountElem(ll2) != 0){
+		printf("Test ListCountElem on empty list failed.\n");
 		exit(-1);
 	}
 	printf("=>OK\n");
@@ -176,7 +207,7 @@ void testGoCurrentNextPreviousHeadBottom(){
 
 	printf("Test goToBottom.\n");
 	if(ll1->cursor != c4){
-		printf("Test goToBottom failed.\n");
+		printf("Test goToBottom failed. Cursor value = %p, c4 value = %p \n", ll1->cursor, c4);
 		exit(-1);
 	}
 	printf( "=>OK\n");
@@ -206,16 +237,16 @@ void testGoCurrentNextPreviousHeadBottom(){
 void testInsert(){
 	printf("Test InsertHead\n");
 	
-	insertHeadCell(ll1, c5);
+	c5 = insertHeadCell(ll1, lInsert1);
 	
-	if(ll1->head != c5){
+	if(ll1->head != c5 || ll1->head->userData != lInsert1){
 		printf( "Test insertHeadCell failed\n");
 		exit(-1);
 	}
 	printf( "=>OK\n");
 	printf("Test insertbottom\n");
 	
-	insertBottomCell(ll1,c6);
+	c6 = insertBottomCell(ll1,lInsert2);
 	
 	if(ll1->bottom != c6 || c4->next != c6 || c6->previous != c4){
 		printf( "Test insertbottom failed\n");
@@ -226,7 +257,7 @@ void testInsert(){
 	goToBottomCell(ll1);
 	
 	printf( "Test insertAfterCell cursor on bottom\n");
-	insertAfterCell(ll1, c7);
+	c7 = insertAfterCell(ll1, lInsert3);
 	if(ll1->bottom != c7 || c6->next != c7 || c7->previous != c6 ){
 		printf( "Test insertAfterCell cursor on bottom failed\n");
 		exit(-1);
@@ -236,7 +267,7 @@ void testInsert(){
 	printf( "Test insertAfterCell cursor normal\n");
 	ll1->cursor = c2;
 	
-	insertAfterCell(ll1, c8);
+	c8 = insertAfterCell(ll1, lInsert4);
 	if(nextCell(ll1) != c8 || c8->previous != c2 || c2->next != c8){
 		printf( "Test insertAfterCell cursor normal failed\n");
 		exit(-1);
@@ -246,7 +277,7 @@ void testInsert(){
 	printf( "Test insertAfterCell cursor on head\n");
 	goToHeadList(ll1);
 
-	insertAfterCell(ll1, c9);
+	c9 = insertAfterCell(ll1, lInsert5);
 	if(nextCell(ll1) != c9 || c9->next != c5 || c5->previous != c9 ){
 		printf( "Test insertAfterCell cursor on head failed\n");
 		exit(-1);
@@ -256,7 +287,7 @@ void testInsert(){
 	printf( "Test insertBeforeCell cursor on head\n");
 	
 	goToHeadList(ll1);
-	insertBeforeCell(ll1, c10);
+	c10 = insertBeforeCell(ll1, lInsert6);
 	
 	if(nextCell(ll1) != c10 || c10->next != c9 || c9->previous != c10){
 		printf("Test insertBeforeCell cursor on head failed\n");
@@ -267,7 +298,7 @@ void testInsert(){
 	printf( "Test insertBeforeCell cursor normal \n");
 	
 	ll1->cursor = c3;
-	insertBeforeCell(ll1, c11);
+	c11 = insertBeforeCell(ll1, lInsert7);
 	
 	if(previousCell(ll1) != c11 || c11->next != c3 || c3->previous != c11){
 		printf("Test insertBeforeCell cursor normal failed\n");
@@ -278,7 +309,7 @@ void testInsert(){
 	printf( "Test insertBeforeCell cursor on bottom\n");
 	
 	goToBottomCell(ll1);
-	insertBeforeCell(ll1, c12);
+	c12 = insertBeforeCell(ll1, lInsert8);
 	
 	if(previousCell(ll1) != c12 || c12->next != ll1->bottom 
 	|| ll1->bottom->previous != c12){

@@ -52,9 +52,9 @@ Cell* createCell(void* userData);
 List* createEmptyList(LIST_TYPE type);
 /**
  * Créé une liste de Cell ayant pour premier élément
- * head. Place le curseur en tête de liste (à NULL, 
- * cf NOTE GENERALE).
- * @param head le premier élément de la liste créée.
+ * une Cell contenant headUserData. Place le curseur en tête 
+ * de liste (à NULL, cf NOTE GENERALE).
+ * @param headUserData le premier élément de la liste créée.
  */
 List* createList(LIST_TYPE type, void* headUserData);
 
@@ -93,36 +93,32 @@ int listCountElem(List* list);
 bool isListEmpty(List* list);
 
 /**
- * Insère un Cell en tête de liste.
- * Attention : écrase les liens que pouvait avoir ce
- * Cell avec d'autres.
+ * Insère un Cell en tête de liste contenant
+ * userData.
  * Ne déplace pas le curseur.
  */
-void insertHeadCell(List* list, void* userData);
+Cell* insertHeadCell(List* list, void* userData);
 
 /**
- * Insère un Cell en fin de liste.
- * Attention : écrase les liens que pouvait avoir ce
- * Cell avec d'autres.
+ * Insère un Cell en fin de listecontenant
+ * userData.
  * Ne déplace pas le curseur.
  */
-void insertBottomCell(List* list, void* userData);
+Cell* insertBottomCell(List* list, void* userData);
 
 /**
- * Insère le Cell lToInsert à la suite du curseur.
- * Attention : écrase les liens que pouvait avoir ce
- * Cell avec d'autres.
+ * Insère le Cell lToInsert contenant
+ * userData à la suite du curseur.
  * Ne déplace pas le curseur.
  */
-void insertAfterCell(List* list, void* userData);
+Cell* insertAfterCell(List* list, void* userData);
 
 /**
- * Insère le Cell lToInsert avant le curseur.
- * Attention : écrase les liens que pouvait avoir ce
- * Cell avec d'autres.
+ * Insère le Cell lToInsert contenant
+ * userData avant le curseur.
  * Ne déplace pas le curseur.
  */
-void insertBeforeCell(List* list, void* userData);
+Cell* insertBeforeCell(List* list, void* userData);
 
 /**
  * Positionne le curseur en tête de liste (donc à NULL).

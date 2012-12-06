@@ -8,7 +8,7 @@ typedef struct image{
 	int width;
 	int height;
 	int maxValue;
-	unsigned char* arrayRVB;
+	unsigned char* arrayRGB;
 	
 }Image;
 
