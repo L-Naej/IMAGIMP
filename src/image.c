@@ -6,11 +6,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 
 #define MAX_LINE_LENGTH 70
 #define N_HEADER_DATALINE 3
 #define DEFAULT_MAX_VAL 255
-#define NB_COL_COMP 3 //nombre de composantes couleur (RVB=>3)
+#define NB_COL_COMP 3 //nombre de composantes couleur (RGB=>3)
 
 Image* loadImage(char* fileName){
 	if(fileName == NULL){
@@ -81,8 +82,8 @@ Image* loadImage(char* fileName){
 	//Allocation mémoire pour les lignes de pixels
 	nPix = (img->width)*(img->height);
 	
-	img->arrayRVB = (unsigned char*) malloc(nPix*3*sizeof(unsigned char));//1px = 3 composantes
-	if(img->arrayRVB == NULL){
+	img->arrayRGB = (unsigned char*) malloc(nPix*3*sizeof(unsigned char));//1px = 3 composantes
+	if(img->arrayRGB == NULL){
 		free(img->comments);
 		free(img);
 	}
@@ -98,11 +99,11 @@ Image* loadImage(char* fileName){
 	haut de l'image en bas du tableau). On décale de trois pour prendre les composantes dans le bon ordre*/
 	for(i =(nPix*NB_COL_COMP)-NB_COL_COMP; i >= 0; i=i-NB_COL_COMP){		
 		readNUchar(&currentPix, 1, imgFile);
-		img->arrayRVB[i] = currentPix;
+		img->arrayRGB[i] = currentPix;
 		readNUchar(&currentPix, 1, imgFile);
-		img->arrayRVB[i+1] = currentPix;
+		img->arrayRGB[i+1] = currentPix;
 		readNUchar(&currentPix, 1, imgFile);
-		img->arrayRVB[i+2] = currentPix;
+		img->arrayRGB[i+2] = currentPix;
 	}
 	
 	fclose(imgFile);
@@ -138,7 +139,7 @@ void detectWH(const char* text, int* w, int* h){
 
 void freeImage(Image* img){
 	free(img->comments);
-	free(img->arrayRVB);
+	free(img->arrayRGB);
 	free(img);
 }
 
@@ -149,7 +150,7 @@ bool saveImage(Image* img){
 	char format[4], dim[4+1+4+1], maxVal[4];
 	long nPix;
 	
-	if(img == NULL || img->arrayRVB == NULL){
+	if(img == NULL || img->arrayRGB == NULL){
 		fprintf(stderr,"Image nulle ou vide de pixels.\n");
 		return false;
 	}
@@ -203,12 +204,12 @@ bool saveImage(Image* img){
 	}
 	
 	//On inverse le tableau avant de l'écrire
-    	invertPPMArray(img->arrayRVB,nPix*NB_COL_COMP);
+    	invertPPMArray(img->arrayRGB,nPix*NB_COL_COMP);
     	
-	writeNUchar(img->arrayRVB, nPix*NB_COL_COMP, imgFile);
+	writeNUchar(img->arrayRGB, nPix*NB_COL_COMP, imgFile);
 	
 	//On remet le tableau dans le bon sens après l'avoir écrit
-    	invertPPMArray(img->arrayRVB,nPix*NB_COL_COMP);
+    	invertPPMArray(img->arrayRGB,nPix*NB_COL_COMP);
     	
 	fflush(imgFile);
 	
@@ -233,9 +234,9 @@ Image* createEmptyImg(int w, int h){
 	
 	long int nPix = w*h*NB_COL_COMP;
 	
-	img->arrayRVB = (unsigned char*) calloc(nPix,sizeof(unsigned char));
+	img->arrayRGB = (unsigned char*) calloc(nPix,sizeof(unsigned char));
 	for(i=0; i < nPix; ++i)
-		img->arrayRVB[i] = DEFAULT_MAX_VAL;
+		img->arrayRGB[i] = DEFAULT_MAX_VAL;
 	
 	return img;
 }
@@ -260,16 +261,65 @@ bool imgAddName(Image* img, const char name[]){
 	return true;
 }
 
+bool histoRGB (Image* img, unsigned char** hR,  unsigned char** hG,  unsigned char** hB){
+	if (img == NULL) return false;
+	if (hR==NULL || hG==NULL || hB==NULL) return false;
+	 
+	int i=0;
+	unsigned char* histoR=(unsigned char*)calloc(256, sizeof(unsigned char));
+	unsigned char* histoG=(unsigned char*)calloc(256, sizeof(unsigned char));
+	unsigned char* histoB=(unsigned char*)calloc(256, sizeof(unsigned char));
+	
+	for (i; i <(img->width*img->height); i+=3){ 
+		histoR[img->arrayRGB[i]]=histoR[img->arrayRGB[i]]+1;
+		histoG[img->arrayRGB[i+1]]=histoG[img->arrayRGB[i+1]]+1;
+		histoB[img->arrayRGB[i+2]]=histoB[img->arrayRGB[i+2]]+1;
+		}	
+	*hR=histoR;
+	*hG=histoG;
+	*hB=histoB;
+	return true;
+}
+	
+bool histo (Image* img, int** h){
+	if(img ==NULL || h==NULL)return false;
+	int i=0;
+	int val=0;
+	int* histo=(int*)calloc(256, sizeof(int));
+	
+	for (i; i <(img->width*img->height)*3; i+=3){ 
+		val=ceil((img->arrayRGB[i]+img->arrayRGB[i+1]+img->arrayRGB[i+2])/3.0);
+		histo[val]=histo[val]+1;
+		}
+	*h=histo;
+	return true;
+}
+	
 
 
 //Fonction de test à supprimer
 
 int main(int argc, char** argv){
-	Image* test = loadImage("/home/barti/Documents/IMAC/C/IMAGIMP/images/Clown.256.ppm");
-	if(test == NULL) return -1;
+	Image* test = loadImage("images/Clown.256.ppm");
+	int* h=NULL;
+	int i=0;
+	histo(test,&h);
+	for(i;i<256;i++){
+	printf("%d %d\n", i,h[i]);
+	}	
+	
+	strcpy(test->name, "images/Clown.257.ppm");
+	saveImage(test);
 
-	initGLIMAGIMP(test->width,test->height,test->arrayRVB);
+	freeImage(test);
+
+	test = loadImage("images/Clown.257.ppm");
+	
+	if(test)
+		initGLIMAGIMP(test->width,test->height,test->arrayRGB);
+	else printf("debug\n");
 	free(test);
+	
 	
 	return 0;
 }

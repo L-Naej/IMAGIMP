@@ -8,10 +8,11 @@ INCLUDES = ./lib/include
 # Répertoire des librairies
 LIBDIR = ./lib
 # Librairies
-LIBS =  -lglimagimp -lglut -lGL -lGLU
+LIBS =  -lglimagimp -lglut -lGL -lGLU -lm
 # Compilateur
 CC = gcc
-SRC = src/image.c src/utils.c src/lut.c src/lutfunction.c src/layer.c src/list.c
+SRC = src/image.c src/utils.c src/lut.c src/lutfunction.c 
+#src/layer.c src/list.c
 SRCTEST = src/testListes.c $(SRC)
 
 all:

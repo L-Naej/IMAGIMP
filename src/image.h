@@ -8,7 +8,9 @@ typedef struct image{
 	int width;
 	int height;
 	int maxValue;
-	unsigned char* arrayRVB;
+	unsigned char* arrayRGB;
+	unsigned char* histoGrey;
+	unsigned char* histoRGB;
 	
 }Image;
 
@@ -32,5 +34,9 @@ void freeImage(Image* img);
 
 //Ajoute ou modifie le nom d'une struct Image
 bool imgAddName(Image* img, const char name[]);
+
+bool histoRGB (Image* img, unsigned char** hR,  unsigned char** hG,  unsigned char** hB);
+
+bool histo (Image* img,int** h);
 
 #endif

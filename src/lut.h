@@ -11,8 +11,8 @@ typedef enum lut_function{
 } LUT_FUNCTION;
 
 typedef struct lut{
-	unsigned char* inputArrayRVB;
-	unsigned char* outputArrayRVB;
+	unsigned char* inputArrayRGB;
+	unsigned char* outputArrayRGB;
 	long int size;
 	int maxValue;
 	

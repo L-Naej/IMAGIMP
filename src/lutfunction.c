@@ -9,7 +9,7 @@ void invertLut(Lut* lt){
 	if(lt == NULL) return;
 	
 	for(i; i < lt->size; i++){
-		lt->outputArrayRVB[i] = lt->maxValue - lt->inputArrayRVB[i];
+		lt->outputArrayRGB[i] = lt->maxValue - lt->inputArrayRGB[i];
 	}
 }
 	
@@ -24,9 +24,9 @@ void addLum(Lut* lt, int val){
 		}
 		
 	for (i;i<lt->size;i++){
-		lt->outputArrayRVB[i]= lt->inputArrayRVB[i]+val;
-		if (lt->outputArrayRVB[i]>255){
-			lt->outputArrayRVB[i]=255;
+		lt->outputArrayRGB[i]= lt->inputArrayRGB[i]+val;
+		if (lt->outputArrayRGB[i]>lt->maxValue){
+			lt->outputArrayRGB[i]=lt->maxValue;
 			}
 		}
 }
@@ -42,9 +42,9 @@ void dimLum(Lut* lt, int val){
 		}
 		
 	for (i;i<lt->size;i++){
-		lt->outputArrayRVB[i]= lt->inputArrayRVB[i]-val;
-		if (lt->outputArrayRVB[i]<0){
-			lt->outputArrayRVB[i]=0;
+		lt->outputArrayRGB[i]= lt->inputArrayRGB[i]-val;
+		if (lt->outputArrayRGB[i]<0){
+			lt->outputArrayRGB[i]=0;
 			}
 		}
 }
@@ -65,12 +65,12 @@ void addContrast(Lut* lt, int val){
 	diff=(128*coef)-128; 
 	
 	for (i;i<lt->size;i++){
-		lt->outputArrayRVB[i]= (lt->inputArrayRVB[i]*coef)-diff;
-		if (lt->outputArrayRVB[i]<0){
-			lt->outputArrayRVB[i]=0;
+		lt->outputArrayRGB[i]= (lt->inputArrayRGB[i]*coef)-diff;
+		if (lt->outputArrayRGB[i]<0){
+			lt->outputArrayRGB[i]=0;
 			}
-		if (lt->outputArrayRVB[i]>255){
-			lt->outputArrayRVB[i]=255;
+		if (lt->outputArrayRGB[i]>lt->maxValue){
+			lt->outputArrayRGB[i]=lt->maxValue;
 			}
 		}
 }
@@ -90,22 +90,22 @@ void dimContrast(Lut* lt, int val){
 	diff=(128*coef)-128; 
 	
 	for (i;i<lt->size;i++){
-		lt->outputArrayRVB[i]= (lt->inputArrayRVB[i]*coef)-diff;
-		if (lt->outputArrayRVB[i]<0){
-			lt->outputArrayRVB[i]=0;
+		lt->outputArrayRGB[i]= (lt->inputArrayRGB[i]*coef)-diff;
+		if (lt->outputArrayRGB[i]<0){
+			lt->outputArrayRGB[i]=0;
 			}
-		if (lt->outputArrayRVB[i]>255){
-			lt->outputArrayRVB[i]=255;
+		if (lt->outputArrayRGB[i]>lt->maxValue){
+			lt->outputArrayRGB[i]=lt->maxValue;
 			}
 		}
 }
-/*	
+/*
 void sepia(Lut* lt){
 	int i=0;
-	int channel=0; // Va permettre de switcher la channel (sépia est la seule LUT nécessitant de prendre en compte chaque composante
 	if(lt == NULL) return;
 	
-	//to be continued
-	}
-*/	
+	for (i;i<lt->size;i++){
 	
+	//to be continued
+	}	
+*/	

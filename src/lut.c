@@ -13,15 +13,15 @@ Lut* createLut(unsigned char* inputArray, long int size, int maxVal, LUT_FUNCTIO
 	if(inputArray == NULL) return NULL;
 	int val=0;
 	Lut* lt = (Lut*) malloc(sizeof(Lut));
-	lt->inputArrayRVB = inputArray;
 	
+	lt->inputArrayRGB = inputArray;	
 	lt->function = lF;
 	lt->maxValue = maxVal;
 	lt->size = size;
 	
-	lt->outputArrayRVB = (unsigned char*) calloc(size, sizeof(unsigned char));
+	lt->outputArrayRGB = (unsigned char*) calloc(size, sizeof(unsigned char));
 	
-	if(lt->outputArrayRVB == NULL){
+	if(lt->outputArrayRGB == NULL){
 		free(lt);
 		return NULL;
 	}
@@ -33,9 +33,9 @@ Lut* createLut(unsigned char* inputArray, long int size, int maxVal, LUT_FUNCTIO
 		break;
 		case DIMLUM : addLum (lt,val);
 		break;
-		case ADDCON : addLum (lt,val);
+		case ADDCON : addContrast (lt,val);
 		break;
-		case DIMCON : addLum (lt,val);
+		case DIMCON : addContrast (lt,val);
 		break;
 		/*case SEPIA : sepia (lt);
 		break;
@@ -53,8 +53,11 @@ Lut* createLut(unsigned char* inputArray, long int size, int maxVal, LUT_FUNCTIO
 void freeLut(Lut* lt){
 	if(lt == NULL) return;
 	
-	free(lt->outputArrayRVB);
+	free(lt->outputArrayRGB);
 	free(lt);
 }
+
+
+
 
 
