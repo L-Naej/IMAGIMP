@@ -71,4 +71,10 @@ void setLayerOpacity(Layer* lay, double newOpa);
  */
 void setLayerOperation(Layer* lay, LAYER_OP newOp);
 
+/**
+ * Génère l'image final après passage à travers
+ * tous les LUT du layer.
+ */
+Image* generateFinalImage(Layer* lay);
+
 #endif

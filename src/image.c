@@ -94,18 +94,16 @@ Image* loadImage(char* fileName){
 	fseek(imgFile,position, SEEK_SET);
 	
 	ctr = 0;
-	
-	/*On commence par le dernier pixel (image stockées 'à l'envers' avec le 
-	haut de l'image en bas du tableau). On décale de trois pour prendre les composantes dans le bon ordre*/
-	for(i =(nPix*NB_COL_COMP)-NB_COL_COMP; i >= 0; i=i-NB_COL_COMP){		
+		 
+	for(i =0; i < nPix*NB_COL_COMP; i++){		
 		readNUchar(&currentPix, 1, imgFile);
 		img->arrayRGB[i] = currentPix;
-		readNUchar(&currentPix, 1, imgFile);
-		img->arrayRGB[i+1] = currentPix;
-		readNUchar(&currentPix, 1, imgFile);
-		img->arrayRGB[i+2] = currentPix;
 	}
 	
+	//On stocke l'image inversée en mémoire
+	//pour qu'elle soit toute prête à être affichée
+	//par OpenGL
+	invertPPMArray(img->arrayRGB, img->width, img->height);
 	fclose(imgFile);
 	
 	return img;
@@ -204,12 +202,12 @@ bool saveImage(Image* img){
 	}
 	
 	//On inverse le tableau avant de l'écrire
-    	invertPPMArray(img->arrayRGB,nPix*NB_COL_COMP);
+    	invertPPMArray(img->arrayRGB,img->width, img->height);
     	
 	writeNUchar(img->arrayRGB, nPix*NB_COL_COMP, imgFile);
 	
 	//On remet le tableau dans le bon sens après l'avoir écrit
-    	invertPPMArray(img->arrayRGB,nPix*NB_COL_COMP);
+    	invertPPMArray(img->arrayRGB,img->width, img->height);
     	
 	fflush(imgFile);
 	
@@ -319,7 +317,6 @@ int main(int argc, char** argv){
 		initGLIMAGIMP(test->width,test->height,test->arrayRGB);
 	else printf("debug\n");
 	free(test);
-	
 	
 	return 0;
 }

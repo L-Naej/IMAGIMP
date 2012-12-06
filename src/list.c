@@ -29,6 +29,7 @@ List* createList(LIST_TYPE type, void* headUserData){
 	if(list == NULL || headUserData == NULL) return NULL;
 	
 	list->head = createCell(headUserData);
+	list->bottom = list->head;
 	if(list->head == NULL){
 		free(list);
 		return NULL;
@@ -38,19 +39,7 @@ List* createList(LIST_TYPE type, void* headUserData){
 	
 	//On place le curseur en début de liste (avant head)
 	list->cursor = NULL;	
-	
-	//Vérifie que le Cell "head" n'est pas déjà connecté
-	//à d'autres Cells, si oui, ils font donc partie de la liste
-	//(ne devrait pas arriver)
-	list->size = listCountElem(list);
-	
-	//On va en fin de liste (si le Cell passé
-	//en paramètre est lié à d'autres, sinon list->head == list->bottom)
-	while(nextCell(list) != NULL);
-	list->bottom = list->cursor;
-	
-	list->cursor = NULL;
-	
+	list->size = 1;
 	return list;
 }
 
@@ -113,16 +102,16 @@ bool isListEmpty(List* list){
 	return false;
 }
 
-void insertHeadCell(List* list, void* userData){
+Cell* insertHeadCell(List* list, void* userData){
 	//La liste doit être initialisée (sinon ça devient le bordel)
 	if(list == NULL || userData == NULL){
 		fprintf(stderr,"Tentative d'insertion d'un élement dans une liste nulle.\n");	
-		return;
+		return NULL;
 	} 
 	Cell* c = createCell(userData);
 	if(c == NULL){
 		fprintf(stderr, "Erreur lors de l'ajout d'une cellule en tête de liste.\n");
-		return;	
+		return NULL;	
 	} 
 	
 	c->previous = NULL;
@@ -131,19 +120,21 @@ void insertHeadCell(List* list, void* userData){
 	list->head = c;
 	
 	list->size++;
+	
+	return c;
 }
 
-void insertBottomCell(List* list, void* userData){
+Cell* insertBottomCell(List* list, void* userData){
 	//La liste doit être initialisée (sinon ça devient le bordel)
 	if(list == NULL || userData == NULL){
 		fprintf(stderr,"Tentative d'insertion d'un élement dans une liste nulle.\n");	
-		return;
+		return NULL;
 	} 
 	
 	Cell* c = createCell(userData);
 	if(c == NULL){
 		fprintf(stderr, "Erreur lors de l'ajout d'une cellule en fin de liste.\n");
-		return;	
+		return NULL;	
 	}
 	 
 	c->previous = list->bottom;
@@ -152,15 +143,16 @@ void insertBottomCell(List* list, void* userData){
 	list->bottom = c;
 	
 	list->size++;
+	return c;
 }
 
-void insertAfterCell(List* list, void* userData){
-	if(list == NULL || userData == NULL) return;
+Cell* insertAfterCell(List* list, void* userData){
+	if(list == NULL || userData == NULL) return NULL;
 	
 	Cell* cToInsert = createCell(userData);
 	if(cToInsert == NULL){
 		fprintf(stderr, "Erreur lors de l'ajout d'une cellule dans une liste");
-		return;
+		return NULL;
 	}
 	
 	//-------On relie cToInsert à son voisin de droite
@@ -197,15 +189,17 @@ void insertAfterCell(List* list, void* userData){
 	}
 	
 	list->size++;
+	
+	return cToInsert;
 }
 
-void insertBeforeCell(List* list, void* userData){
-	if(list == NULL || userData == NULL) return;
+Cell* insertBeforeCell(List* list, void* userData){
+	if(list == NULL || userData == NULL) return NULL;
 	
 	Cell* cToInsert = createCell(userData);
 	if(cToInsert == NULL){
 		fprintf(stderr, "Erreur lors de l'ajout d'une cellule dans une liste");
-		return;
+		return NULL;
 	}
 	//On relie cToInsert à son voisin de gauche
 	
@@ -232,6 +226,8 @@ void insertBeforeCell(List* list, void* userData){
 
 	
 	list->size++;
+	
+	return cToInsert;
 }
 
 void goToHeadList(List* list){
@@ -369,7 +365,7 @@ void dumpList(List* list){
 	if(list == NULL) return;
 	int cnt = 1;
 	
-	printf("\n--------------Affichage Liste--------------\n\n");
+	printf("\n--------------Affichage Liste (Adresse : %p)--------------\n\n", list);
 	if(isListEmpty(list)){
 		printf("\tListe vide.\n");
 		return;

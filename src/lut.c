@@ -9,7 +9,7 @@
  * @param lF: fonction appliquée par la LUT 
  * @see enum lut_function
  */
-Lut* createLut(unsigned char* inputArray, long int size, int maxVal, LUT_FUNCTION lF){
+Lut* createLut(unsigned char* inputArray, long int size, int maxVal, LUT_FUNCTION lF, unsigned char value){
 	if(inputArray == NULL) return NULL;
 	int val=0;
 	Lut* lt = (Lut*) malloc(sizeof(Lut));

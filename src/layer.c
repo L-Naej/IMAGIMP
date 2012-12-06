@@ -17,7 +17,7 @@ Layer* createLayer(Image* source, double opa, LAYER_OP operation){
 	l->opacity = opa;
 	l->operation = operation;
 	
-	lutList = NULL;
+	l->lutList = NULL;
 	
 	return l;
 }
@@ -31,7 +31,7 @@ Layer* createEmptyLayer(int w, int h){
 	l->opacity = 0.0;
 	l->operation = MULTIPLICATION;
 	
-	lutList = NULL;
+	l->lutList = NULL;
 	
 	return l;
 }
@@ -82,7 +82,16 @@ void setLayerOperation(Layer* lay, LAYER_OP newOp){
 	lay->operation = newOp;
 }
 
+Image* generateFinalImage(Layer* lay){
+	if(lay == NULL) return NULL;
+	
+	//TO DO
 
+	while(nextCell(lay->lutList) != NULL){
+		
+	}
+	return NULL;
+}
 
 
 
