@@ -35,7 +35,7 @@ void freeImage(Image* img);
 //Ajoute ou modifie le nom d'une struct Image
 bool imgAddName(Image* img, const char name[]);
 
-bool histoRGB (Image* img, unsigned char** hR,  unsigned char** hG,  unsigned char** hB);
+bool histoRGB (Image* img, int** hR,  int** hG,  int** hB);
 
 bool histo (Image* img,int** h);
 

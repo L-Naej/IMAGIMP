@@ -259,16 +259,16 @@ bool imgAddName(Image* img, const char name[]){
 	return true;
 }
 
-bool histoRGB (Image* img, unsigned char** hR,  unsigned char** hG,  unsigned char** hB){
+bool histoRGB (Image* img, int** hR,  int** hG,  int** hB){
 	if (img == NULL) return false;
 	if (hR==NULL || hG==NULL || hB==NULL) return false;
 	 
 	int i=0;
-	unsigned char* histoR=(unsigned char*)calloc(256, sizeof(unsigned char));
-	unsigned char* histoG=(unsigned char*)calloc(256, sizeof(unsigned char));
-	unsigned char* histoB=(unsigned char*)calloc(256, sizeof(unsigned char));
+	int* histoR=(int*)calloc(256, sizeof(int));
+	int* histoG=(int*)calloc(256, sizeof(int));
+	int* histoB=(int*)calloc(256, sizeof(int));
 	
-	for (i; i <(img->width*img->height); i+=3){ 
+	for (i; i <(img->width*img->height)*3; i+=3){ 
 		histoR[img->arrayRGB[i]]=histoR[img->arrayRGB[i]]+1;
 		histoG[img->arrayRGB[i+1]]=histoG[img->arrayRGB[i+1]]+1;
 		histoB[img->arrayRGB[i+2]]=histoB[img->arrayRGB[i+2]]+1;
@@ -285,8 +285,8 @@ bool histo (Image* img, int** h){
 	int val=0;
 	int* histo=(int*)calloc(256, sizeof(int));
 	
-	for (i; i <(img->width*img->height)*3; i+=3){ 
-		val=ceil((img->arrayRGB[i]+img->arrayRGB[i+1]+img->arrayRGB[i+2])/3.0);
+	for (i; i <((img->width)*(img->height))*3; i+=3){ 
+		val=(0.299*img->arrayRGB[i])+(0.587*img->arrayRGB[i+1])+(0.114*img->arrayRGB[i+2]);
 		histo[val]=histo[val]+1;
 		}
 	*h=histo;
@@ -299,19 +299,8 @@ bool histo (Image* img, int** h){
 
 int main(int argc, char** argv){
 	Image* test = loadImage("images/Clown.256.ppm");
-	int* h=NULL;
-	int i=0;
-	histo(test,&h);
-	for(i;i<256;i++){
-	printf("%d %d\n", i,h[i]);
-	}	
 	
-	strcpy(test->name, "images/Clown.257.ppm");
-	saveImage(test);
-
-	freeImage(test);
-
-	test = loadImage("images/Clown.257.ppm");
+	applyLut(test,SEPIA,0);
 	
 	if(test)
 		initGLIMAGIMP(test->width,test->height,test->arrayRGB);

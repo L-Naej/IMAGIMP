@@ -2,7 +2,7 @@
 #include "image.h"
 #include <stdlib.h>
 #include <string.h>
-
+#define NB_COL_COMP 3
 //Lit n unsigned char d'un fichier
 bool readNUchar(unsigned char* t, int n, FILE* f){
 	int i, readed = 0;
