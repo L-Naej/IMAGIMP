@@ -10,8 +10,6 @@
 
 #define MAX_LINE_LENGTH 70
 #define N_HEADER_DATALINE 3
-#define DEFAULT_MAX_VAL 255
-#define NB_COL_COMP 3 //nombre de composantes couleur (RGB=>3)
 
 Image* loadImage(char* fileName){
 	if(fileName == NULL){
@@ -296,7 +294,7 @@ bool histo (Image* img, int** h){
 
 
 //Fonction de test à supprimer
-
+/*
 int main(int argc, char** argv){
 	Image* test = loadImage("images/Clown.256.ppm");
 	
@@ -308,4 +306,4 @@ int main(int argc, char** argv){
 	free(test);
 	
 	return 0;
-}
+}*/

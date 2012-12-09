@@ -17,10 +17,10 @@ Lut* createLut(LUT_FUNCTION lF, int val){
 	lt->size = 256;
 	
 	if (lt->function!=SEPIA){
-		unsigned char* inputArray;
-		if(inputArray == NULL) return NULL;
+		unsigned char* inputArray = NULL;
 		inputArray=(unsigned char*) malloc((lt->maxValue)*sizeof(unsigned char));
-	
+		if(inputArray == NULL) return NULL;
+		
 		for(i=0;i<lt->size;i++){
 			inputArray[i]=i;
 			}
@@ -29,17 +29,25 @@ Lut* createLut(LUT_FUNCTION lF, int val){
 		lt->outputArrayRGB = (unsigned char*) calloc(lt->size, sizeof(unsigned char));
 	
 		if(lt->outputArrayRGB == NULL){
+			free(lt->inputArrayRGB);
 			free(lt);
 			return NULL;
 		}
 	}
 	else {
-		unsigned char* inputArrayR,*inputArrayG,*inputArrayB;
-		if(inputArrayR==NULL ||inputArrayG==NULL || inputArrayB==NULL) return NULL;
+		unsigned char* inputArrayR = NULL,*inputArrayG = NULL,*inputArrayB = NULL;
 		inputArrayR=(unsigned char*) malloc((lt->maxValue)*sizeof(unsigned char));
 		inputArrayG=(unsigned char*) malloc((lt->maxValue)*sizeof(unsigned char));
 		inputArrayB=(unsigned char*) malloc((lt->maxValue)*sizeof(unsigned char));
 	
+		if(inputArrayR==NULL ||inputArrayG==NULL || inputArrayB==NULL){
+			free(lt->outputArrayRGB);
+			free(lt->inputArrayRGB);
+			free(inputArrayB); free(inputArrayG); free(inputArrayR);
+			free(lt);
+			return NULL;	
+		} 
+		
 		for(i=0;i<lt->size;i++){
 			inputArrayR[i]=i;
 			inputArrayG[i]=i;
@@ -55,10 +63,15 @@ Lut* createLut(LUT_FUNCTION lF, int val){
 		lt->outputArrayB = (unsigned char*) calloc(lt->size, sizeof(unsigned char));
 		
 		if(lt->outputArrayR == NULL || lt->outputArrayG == NULL || lt->outputArrayB == NULL){
+			free(lt->outputArrayRGB);
+			free(lt->inputArrayRGB);
+			free(lt->inputArrayB); free(lt->inputArrayG); free(lt->inputArrayR);
+			free(lt->outputArrayB); free(lt->outputArrayG); free(lt->outputArrayR);
 			free(lt);
 			return NULL;
+		
 		}
-		}
+	}
 		
 	switch(lF){
 		case INVERT : invertLut(lt);
@@ -93,9 +106,8 @@ void freeLut(Lut* lt){
 void applyLut(Image* img,LUT_FUNCTION lF, int val){
 	int i;
 	if (img==NULL) return;
-	Lut* lut;
+	Lut* lut = createLut(lF,val);
 	if (lut==NULL) return;
-	lut=createLut(lF,val);
 	
 	if (lut->function==SEPIA){
 		for(i=0; i<(img->width)*(img->height)*3; i+=3){

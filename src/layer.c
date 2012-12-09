@@ -17,6 +17,8 @@ Layer* createLayer(Image* source, double opa, LAYER_OP operation){
 	l->opacity = opa;
 	l->operation = operation;
 	
+	//On initialise toujours un lut de départ "neutre"
+	// A FAIRE : Lut* neutralLut = createLut(blabla)
 	l->lutList = NULL;
 	
 	return l;
@@ -74,6 +76,9 @@ bool addLut(Layer* lay, Lut* lt){
 
 void setOpacity(Layer* lay, double newOpa){
 	if(lay == NULL) return;
+	if(newOpa > 1.0) newOpa = 1.0;
+	else if(newOpa < 0.0) newOpa = 0.0;
+	
 	lay->opacity = newOpa;
 }
 
@@ -82,12 +87,18 @@ void setLayerOperation(Layer* lay, LAYER_OP newOp){
 	lay->operation = newOp;
 }
 
-Image* generateFinalImage(Layer* lay){
+Image* applyLuts(Layer* lay){
 	if(lay == NULL) return NULL;
+	if(isListEmpty(lay->lutList)){
+		
+	}
 	
 	//TO DO
+	Lut* currentLut = NULL;
 
 	while(nextCell(lay->lutList) != NULL){
+		currentLut = (Lut*) currentData(lay->lutList);
+		
 		
 	}
 	return NULL;

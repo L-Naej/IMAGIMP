@@ -7,7 +7,8 @@ typedef enum lut_function{
 	DIMLUM,
 	ADDCON,
 	DIMCON,
-	SEPIA
+	SEPIA,
+	NEUTRAL
 } LUT_FUNCTION;
 
 typedef struct lut{

@@ -1,6 +1,10 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 #include "utils.h"
+
+#define DEFAULT_MAX_VAL 255
+#define NB_COL_COMP 3 //nombre de composantes couleur (RGB=>3)
+
 typedef struct image{
 	short format;//P1 to P6
 	char* comments;

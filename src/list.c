@@ -83,6 +83,24 @@ Cell* previousCell(List* list){
 	return list->cursor;
 }
 
+void* nextData(List* list){
+	Cell* c = nextCell(list);
+	if(c) return c->userData;
+	return NULL;
+}
+
+void* previousData(List* list){
+	Cell* c = previousCell(list);
+	if(c) return c->userData;
+	return NULL;
+}
+
+void* currentData(List* list){
+	Cell* c = currentCell(list);
+	if(c) return c->userData;
+	return NULL;
+}
+
 int listCountElem(List* list){
 	int size = 0;
 	if(list == NULL) return size;
@@ -287,6 +305,10 @@ void freeCellByPosition(List* list, int position){
 	
 	Cell* theCell = delCellByPosition(list,position);
 	
+	if(list->type == LAYER){
+		freeLayer((Layer*)theCell->userData);
+	}
+	
 	freeCell(theCell);
 }
 
@@ -376,7 +398,7 @@ void dumpList(List* list){
 
 	
 	while(nextCell(list) != NULL){
-		printf("\n\tCellule %d) ", cnt);
+		printf("\n\tCellule %d)  Adresse : %p", cnt, currentCell(list));
 		switch(list->type){
 			case LAYER : dumpLayer((Layer*)list->cursor->userData);
 			break;
@@ -395,7 +417,7 @@ void dumpList(List* list){
 			printf("Previous Cell : None\n");
 		cnt++;
 	}
-	printf("\n----->Fin Affichage Liste\n");
+	printf("\n----->Fin Affichage Liste (Adresse : %p)\n", list);
 	
 	list->cursor = savedCursor;
 }

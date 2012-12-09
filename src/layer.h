@@ -4,7 +4,18 @@
 #include "lut.h"
 #include "list.h"
 
-/** NOTE : Layer = Calque **/
+/**
+ * NOTES : 
+ * - Layer = Calque
+ * - Chaque layer possède au moins un LUT "neutre" qui se
+ * contente de laisser l'image telle qu'elle.
+ * Cela permet de chainer les luts lors de la génération de
+ * l'image finale sans se soucier de l'entrée à donner
+ * au premier LUT de la liste. Ainsi chaque lut prend en entrée
+ * la sortie du lut précédent, et la chaîne démarre par le LUT
+ * neutre.
+ */
+
 
 typedef enum layer_operation{
 	SUM,
@@ -75,6 +86,6 @@ void setLayerOperation(Layer* lay, LAYER_OP newOp);
  * Génère l'image final après passage à travers
  * tous les LUT du layer.
  */
-Image* generateFinalImage(Layer* lay);
+Image* applyLuts(Layer* lay);
 
 #endif

@@ -1,9 +1,6 @@
 
 TO DO LIST
 -------------------------
-
--Coder le parseur de ligne de commande pour avoir un premier prototype de programme qui permet de 
-	*créer un layer à partir de l'image passée en ligne de commande
-	*ajouter des layers 
-	*voir le résultat final en combinant les layers
+-terminer les lut
+-Créer fonction freeLut et l'appeler dans freeCellInList et freeCellByPosition
 	

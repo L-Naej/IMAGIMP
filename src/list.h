@@ -77,6 +77,24 @@ Cell* nextCell(List* list);
 Cell* previousCell(List* list);
 
 /**
+ * Renvoie la data courrante de la liste list
+ * (contenue dans le Cell sur lequel pointe le curseur).
+ */
+void* currentData(List* list);
+
+/**
+ * Déplace le curseur de la liste sur le
+ * prochain Cell et renvoie le userData qu'il contient.
+ */
+void* nextData(List* list);
+
+/**
+ * Déplace le curseur sur le Cell précédent de la
+ * liste et renvoie le userData qu'il contient.
+ */
+void* previousData(List* list);
+
+/**
  * Compte et renvoie le nombre d'éléments que contient la liste.
  * Ne devrait pas être appelée par une fonctione extérieure de la librairie,
  * utiliser le champ nbCells de la structure List à la place.
