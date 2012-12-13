@@ -14,24 +14,51 @@ List* initLayersList(int argc, char** argv);
 
 /**
  * Ajoute un layer à la fin de la liste de layer "layerList".
- * Déplace le curseur en fin de liste (donc sur le dernier layer ajouté).
+ * Déplace le curseur en fin de liste (donc sur le dernier layer ajouté)
+ * si l'ajout à réussi, ne déplace pas le curseur sinon.
+ * L'ajout n'est possible que si les dimensions du calque sont valides
+ * et si ce dernier possède une image source.
  * Renvoie true si l'ajout réussi, false sinon.
  */
 bool addLayer(List* layerList, Layer* newLay);
 
 /**
+ * "Surcharge" la fonction de liste pour
+ * renvoyer un pointeur de Layer (et non un void*).
+ * Vérifie que la liste est bien une liste de Layers
+ * (renvoie NULL si ce n'est pas le cas).
+ */
+Layer* currentLayer(List* layerList);
+
+/**
+ * "Surcharge" la fonction de liste pour
+ * renvoyer un pointeur de Layer (et non un void*).
+ * Vérifie que la liste est bien une liste de Layers
+ * (renvoie NULL si ce n'est pas le cas).
+ */
+Layer* nextLayer(List* layerList);
+
+/**
+ * "Surcharge" la fonction de liste pour
+ * renvoyer un pointeur de Layer (et non un void*).
+ * Vérifie que la liste est bien une liste de Layers
+ * (renvoie NULL si ce n'est pas le cas).
+ */
+Layer* previousLayer(List* layerList);
+
+/**
  * Génère l'image finale en partant du premier calque
  * et en allant jusqu'au dernier en appliquant toutes
- * les LUT de chaque calque. Stocke le résultat en 
- * peuplant le champ arrayRGB de "finalImage". 
- * finalImage ne doit pas valoir NULL.
+ * les LUT de chaque calque. 
+ * Alloue la mémoire pour stocker le résutalt dans *finalImage.
+ *  
  * Le champ maxValue de finalImage doit être juste (utilisé
  * par la fonction)
  * 
  * Renvoie true si la génération s'est bien passée, false sinon.
  * (à voir si c'est vraiment utile)
  */
-bool generateFinalImage(List* layerList, Image* finalImage);
+bool generateFinalImage(List* layerList, Image** finalImage);
 
 /**
  * Fonction récursive appelée par generateFinalImage.

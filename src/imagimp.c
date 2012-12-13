@@ -4,28 +4,46 @@
 #include "utils.h"
 #include <interface.h>
 
+//Variables globales
+
+/**
+ * Représente la liste de calques utilisée par le programme.
+ */
+List* layerList;
+
 int main(int argc, char** argv){
 	
-	List* layerList = initLayersList(argc, argv);
+	//Définition des fonctions callback de l'IHM
+	initIHM();
 	
+	//Initialisation de la liste des calques
+	layerList = initLayersList(argc, argv);
+	
+	
+	
+	//TEST
+	/*
 	Image* secImage = loadImage("images/Clown.256.ppm");
 	invertPPMArray(secImage->arrayRGB, secImage->width, secImage->height);
 	Layer* testLayer = createLayer(secImage, 1.0, SUM);
 	
 	addLayer(layerList, testLayer);
 
-	goToHeadList(layerList);
-	
-	Image* imgSource = ((Layer*)nextData(layerList))->imgSource;
-	int width = imgSource->width;
-	int height = imgSource->height;
-	
 	Image* finalImage = createEmptyImg(width, height);
 	finalImage->maxValue = imgSource->maxValue;
-
+	
 	if(generateFinalImage(layerList, finalImage)){
-		displayImage(finalImage);
+		initGLIMAGIMP(finalImage->width, finalImage->height, finalImage->arrayRGB);
 	}
+	*/
+	//FIN TEST
+	
+	goToHeadList(layerList);
+	//printState();
+	
+	Image* imgSource = ((Layer*)nextData(layerList))->imgSource;
+	initGLIMAGIMP(imgSource->width, imgSource->height, imgSource->arrayRGB);
+	
 	
 	return 0;
 }

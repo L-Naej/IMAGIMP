@@ -20,6 +20,7 @@ List* createEmptyList(LIST_TYPE type){
 	list->head = list->cursor = list->bottom = NULL;
 	list->size = 0;
 	list->type = type;
+	list->position = 0;
 	
 	return list;
 }
@@ -40,6 +41,7 @@ List* createList(LIST_TYPE type, void* headUserData){
 	//On place le curseur en début de liste (avant head)
 	list->cursor = NULL;	
 	list->size = 1;
+	list->position = 0;
 	return list;
 }
 
@@ -56,6 +58,7 @@ Cell* nextCell(List* list){
 	//Cas spécial : curseur en début de liste, le curseur avance donc sur head
 	if(list->cursor == NULL){
 		list->cursor = list->head;
+		list->position++;
 		return list->cursor;
 	}
 	
@@ -64,6 +67,7 @@ Cell* nextCell(List* list){
 	
 	//Cas général, on avance le curseur et on le retourne
 	list->cursor = list->cursor->next;
+	list->position++;
 	
 	return list->cursor;
 }
@@ -79,6 +83,7 @@ Cell* previousCell(List* list){
 	}
 	
 	list->cursor = list->cursor->previous;
+	list->position--;
 	
 	return list->cursor;
 }
@@ -251,13 +256,15 @@ Cell* insertBeforeCell(List* list, void* userData){
 void goToHeadList(List* list){
 	if(list == NULL) return;
 	
-	list->cursor = NULL;	
+	list->cursor = NULL;
+	list->position = 0;	
 }
 
 Cell* goToBottomCell(List* list){
 	if(list == NULL) return NULL;
 	
 	list->cursor = list->bottom;
+	list->position = list->size;
 	
 	return list->cursor;
 }
@@ -290,7 +297,7 @@ Cell* getCellByPosition(List* list, int position){
 	return list->cursor;
 }
 
-Cell* delCellByPosition(List* list, int position){
+void* delCellByPosition(List* list, int position){
 	if(list == NULL || position < 0 || position > list->size)
 		return NULL;
 		
@@ -300,36 +307,29 @@ Cell* delCellByPosition(List* list, int position){
 	return delCellInList(list, theCell);
 }
 
-void freeCellByPosition(List* list, int position){
-	//delCellByPosition fait les tests pour nous...
-	
-	Cell* theCell = delCellByPosition(list,position);
-	
-	if(list->type == LAYER){
-		freeLayer((Layer*)theCell->userData);
-	}
-	
-	freeCell(theCell);
-}
-
-void freeCell(Cell* c){
-	free(c);
-}
-
 void* delCellInList(List* list, Cell* theCell){
 	if(list == NULL || theCell == NULL) return NULL;
+	void* userData = NULL;
 	
 	//On coupe les liens !
 	
+	//Cas spécial : c'est le dernier cell
+	if(list->size == 1){
+		list->head = list->bottom = list->cursor = NULL;
+		list->position = 0;
+		list->size--;
+	}
 	//Cas spécial : le Cell est en fin de liste
-	if(theCell == list->bottom){
+	else if(theCell == list->bottom){
 		theCell->previous->next = NULL;
 		list->bottom = theCell->previous;
 		theCell->previous = NULL;
-		
+		list->size--;
 		//Si le curseur était sur theCell..
 		if(list->cursor == theCell){
+			printf("pret %p et %p\n", list->cursor, theCell);
 			list->cursor = list->bottom;
+			list->position = list->size;
 		}
 
 	}
@@ -338,10 +338,11 @@ void* delCellInList(List* list, Cell* theCell){
 		theCell->next->previous = NULL;
 		list->head = theCell->next;
 		theCell->next = NULL;
-		
+		list->size--;
 		//Si le curseur était sur theCell..
 		if(list->cursor == theCell){
 			list->cursor = list->head;
+			list->position = 1;
 		}
 	}
 	//Sinon cas général
@@ -353,34 +354,85 @@ void* delCellInList(List* list, Cell* theCell){
 		if(list->cursor == theCell){
 			list->cursor = theCell->next;
 		}
-		
+		list->size--;
 		theCell->next = NULL;
 		theCell->previous = NULL;
 	}	
+	userData = theCell->userData;
+	free(theCell);
 	
-	list->size--;
-	return theCell;
+	return userData;
+}
+
+void freeCellByPosition(List* list, int position){
+	//delCellByPosition fait les tests pour nous...
+	
+	void* userData = delCellByPosition(list,position);
+	
+	switch(list->type){
+		case LAYER : freeLayer((Layer*)userData);
+		break;
+		case LUT : freeLut((Lut*)userData);
+		break;
+		case UNKNOWN : free(userData);
+		break;
+		default : free(userData);
+		break;
+	}
 }
 
 void freeCellInList(List* list, Cell* c){
-	Cell* theCell = delCellInList(list,c);
-	
-	freeCell(theCell);
+	void* userData = delCellInList(list,c);
+	switch(list->type){
+		case LAYER : freeLayer((Layer*)userData);
+		break;
+		case LUT : freeLut((Lut*)userData);
+		break;
+		case UNKNOWN : free(userData);
+		break;
+		default : free(userData);
+		break;
+	}
 }
 
-//Surcouche de free au cas où l'implémentation de List changerait
+void freeCell(Cell* c){
+	free(c);
+}
+
+
+//Comme on supprime les cellules, le curseur se déplace tout
+//seul. Il ne faut donc pas travailler sur nextCell mais sur
+//currentCell.
 void freeList(List* list){
+	if(list == NULL) return;
+	Cell* c = NULL;
+	
+	goToHeadList(list);
+	
+	while( (c = nextCell(list) ) != NULL){
+		freeCellInList(list, c);
+	}
+	
 	free(list);
 }
 
+//Comme on supprime les cellules, le curseur se déplace tout
+//seul. Il ne faut donc pas travailler sur nextCell mais sur
+//currentCell.
 void freeListComplete(List* list){
 	if(list == NULL) return;
 	
-	while(nextCell(list) != NULL){
-		freeCell(list->cursor);
+	Cell* c = NULL;
+	
+	goToHeadList(list);
+	nextCell(list);
+	c = currentCell(list);
+	while( c != NULL){
+		freeCellInList(list, c);
+		c = currentCell(list);
 	}
 	
-	freeList(list);
+	free(list);
 }
 
 void dumpList(List* list){

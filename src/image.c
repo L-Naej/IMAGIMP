@@ -39,7 +39,6 @@ Image* loadImage(char* fileName){
 		return NULL;
 	}
 	
-	
 	img->name = (char*) malloc((strlen(fileName)+1)*sizeof(char));
 	if(img->name == NULL){
 		fprintf(stderr,"Impossible de récupérer le nom de l'image.\n");
@@ -52,11 +51,11 @@ Image* loadImage(char* fileName){
 		//Gestion des commentaires
 		if(currentTxt[0] == '#'){
 			if(img->comments == NULL){
-				img->comments = (char*) malloc(strlen(currentTxt)*sizeof(char));
+				img->comments = (char*) malloc((strlen(currentTxt)+1)*sizeof(char));
 			}
 			else{
-				img->comments = (char*) realloc(img,
-					(strlen(img->comments)+strlen(currentTxt))*sizeof(char));
+				img->comments = (char*) realloc(img->comments,
+					(strlen(img->comments)+strlen(currentTxt)+1)*sizeof(char));
 			}
 			strcpy(img->comments,currentTxt);
 			continue;	
@@ -134,6 +133,7 @@ void detectWH(const char* text, int* w, int* h){
 
 
 void freeImage(Image* img){
+	if(img == NULL) return;
 	free(img->comments);
 	free(img->arrayRGB);
 	free(img);
@@ -215,7 +215,7 @@ bool saveImage(Image* img){
 	return true;
 }
 
-Image* createEmptyImg(int w, int h){
+Image* createEmptyImg(int w, int h, int maxValue){
 	Image* img = (Image*) malloc(sizeof(Image));
 	int i;
 	
@@ -226,13 +226,15 @@ Image* createEmptyImg(int w, int h){
 	
 	img->width = w;
 	img->height = h;
-	img->maxValue = DEFAULT_MAX_VAL;
+	img->maxValue = maxValue;
 	
 	long int nPix = w*h*NB_COL_COMP;
 	
 	img->arrayRGB = (unsigned char*) calloc(nPix,sizeof(unsigned char));
-	for(i=0; i < nPix; ++i)
-		img->arrayRGB[i] = DEFAULT_MAX_VAL;
+	
+	for(i=0; i < nPix; ++i){
+		img->arrayRGB[i] = maxValue;
+	}
 	
 	return img;
 }
@@ -291,7 +293,17 @@ bool histo (Image* img, int** h){
 	return true;
 }
 	
-
+void dumpImage(Image* img){
+	if(img == NULL){
+		printf("Tentative de dump d'une image NULL.\n");
+		return;	
+	} 
+	printf("--Image (Adresse %p)\n", img);
+	if(img->name) printf("Nom : %s\n", img->name);
+	if(img->comments) printf("Commentaires : %s\n", img->comments);
+	printf("Width : %d\nHeight : %d\n", img->width, img->height);
+	
+}
 
 //Fonction de test à supprimer
 /*

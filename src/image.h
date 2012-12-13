@@ -24,8 +24,8 @@ Image* loadImage(char* fileName);
 //Sauvegarde une image sur le disque dur
 bool saveImage(Image* img);
 
-//Créé une image vide blanche (tous les pixels à DEFAULT_MAX_VAL) de dimension w*h
-Image* createEmptyImg(int w, int h);
+//Créé une image vide blanche (tous les pixels à maxValue) de dimension w*h
+Image* createEmptyImg(int w, int h, int maxValue);
 
 /**
  * Détecte la largeur et la hauteur de l'image contenues dans une
@@ -42,5 +42,7 @@ bool imgAddName(Image* img, const char name[]);
 bool histoRGB (Image* img, int** hR,  int** hG,  int** hB);
 
 bool histo (Image* img,int** h);
+
+void dumpImage(Image* img);
 
 #endif

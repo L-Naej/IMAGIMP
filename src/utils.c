@@ -2,7 +2,12 @@
 #include "image.h"
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <dirent.h>
+
 #define NB_COL_COMP 3
+#define F_NAME_PER_LINE 3
+
 //Lit n unsigned char d'un fichier
 bool readNUchar(unsigned char* t, int n, FILE* f){
 	int i, readed = 0;
@@ -15,7 +20,7 @@ bool readNUchar(unsigned char* t, int n, FILE* f){
 }
 
 //Ecrit n unsigned char dans un fichier
-bool writeNUchar(unsigned char* t, int n, FILE* f){
+bool writeNUchar(const unsigned char* t, int n, FILE* f){
 	int i=0, writed = 0;
 	if(f==NULL)return 0;
 	
@@ -42,4 +47,44 @@ void invertPPMArray(unsigned char array[], long int width, long int height){
 	}
 	
 	memcpy(array, invertedArray, nPix*NB_COL_COMP*sizeof(unsigned char));
+}
+
+//credit: 
+//http://www.gnu.org/software/libtool/manual/libc/Simple-Directory-Lister.html
+//Légèrement modifiée pour affichage et pour
+//renvoyer la taille du plus long nom de fichier
+int printDirectory(const char dirName[]){
+	if(dirName == NULL) return 0;
+	int cnt = 0, nameSize;
+	int maxNameLenght = 0;
+
+	DIR *dp;
+	struct dirent *ep;     
+	dp = opendir (dirName);
+	
+	printf("\n\n\t");
+	if (dp != NULL)
+	{
+		while ( ( ep = readdir (dp) ) ){
+			//On ne veut afficher ni le dossier courant
+			//ni le dossier parent 
+			if(strcmp(ep->d_name, ".") == 0 || strcmp(ep->d_name, "..") == 0)
+				continue;
+			cnt++;
+			fputs(ep->d_name, stdout);
+			if( ( nameSize = strlen(ep->d_name) ) > maxNameLenght)
+				maxNameLenght = nameSize;
+				
+			printf(" | ");
+			if(cnt == F_NAME_PER_LINE){
+				printf("\n\t");
+				cnt = 0;
+			} 
+		}	
+		printf("\n\n");
+		(void) closedir (dp);
+	}
+	else
+		perror ("Couldn't open the directory");
+	return maxNameLenght;
 }

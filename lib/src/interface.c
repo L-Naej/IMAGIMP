@@ -271,6 +271,7 @@ void initGLIMAGIMP_IHM(unsigned int w_im,unsigned int h_im,unsigned char *tabRVB
 	/* association de la fonction de traitement des touches*/
 	/* spéciales du clavier                                */
 	glutSpecialFunc(kbdSpFunc_GLIMAGIMP);
+	
 	/* fonction d'attente */
 	glutIdleFunc(idleFunc);
 

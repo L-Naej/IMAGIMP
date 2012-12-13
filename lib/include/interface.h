@@ -101,6 +101,15 @@ extern void fixeFonctionClicSouris(void (*fct)(int,int,int,int));
 // ****************************************************************************
 extern void fixeFonctionDessin(void (*fct)(void));
 // ****************************************************************************
+// Appelez cette fonction pour definir votre propre fonction à 
+// appeler lors du clic sur la croix de la fenêtre.
+// fct : Mettez simplement le nom de la fonction que VOUS avez défini
+//       Cette fonction doit respecter la signature suivante
+//       void xxxxx()
+//       (remplacer xxxxx par un nom à vous bien sur)
+// ****************************************************************************
+extern void fixeFonctionFermetureFenetre(void (*fct) (void));
+// ****************************************************************************
 // Appelez cette fonction pour redefinir l'image a dessiner
 // newImage : Buffer de la nouvelle image a dessiner
 //	          Attention, elle doit etre en couleur et de même taille que la fenetre

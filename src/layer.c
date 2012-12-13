@@ -29,7 +29,12 @@ Layer* createEmptyLayer(int w, int h){
 	if(l == NULL) return NULL;
 	
 	l->id = ++cntLayerId;
-	l->imgSource = createEmptyImg(w,h);
+	l->imgSource = createEmptyImg(w,h, DEFAULT_MAX_VAL);
+	if(l->imgSource == NULL){
+		free(l);
+		return NULL;
+	}
+	
 	l->opacity = 0.0;
 	l->operation = MULTIPLICATION;
 	
@@ -38,8 +43,10 @@ Layer* createEmptyLayer(int w, int h){
 	return l;
 }
 
-//Surcouche de free au cas où l'implémentation de Layer changerait
+//Libère la mémoire prise par un layer
 void freeLayer(Layer* l){
+	if(l== NULL) return;
+	freeImage(l->imgSource);
 	free(l);
 }
 
@@ -48,7 +55,6 @@ void dumpLayer(Layer* l){
 	
 	printf("\n-----------Affichage Layer ID n° %d-----------\n\n", l->id);
 	printf("Address : %p\n", l);
-	printf("Image source : %s\nOpacity : %f\n", l->imgSource->name, l->opacity);
 	printf("Opération : ");
 	switch(l->operation){
 		case SUM : printf("SUM\n");
@@ -56,6 +62,9 @@ void dumpLayer(Layer* l){
 		case MULTIPLICATION : printf("MULTIPLICATION\n");
 		break;
 	}
+	printf("Opacity : %f\n", l->opacity);
+	printf("Image source : %s\n", l->imgSource->name);
+	dumpImage(l->imgSource);
 }
 
 
@@ -74,7 +83,7 @@ bool addLut(Layer* lay, Lut* lt){
 	return true;
 }
 
-void setOpacity(Layer* lay, double newOpa){
+void setLayerOpacity(Layer* lay, double newOpa){
 	if(lay == NULL) return;
 	if(newOpa > 1.0) newOpa = 1.0;
 	else if(newOpa < 0.0) newOpa = 0.0;

@@ -1,7 +1,6 @@
 #include "layersManager.h"
 #include "ihm.h"
 #include "image.h"
-#include <interface.h> //Pour debug
 #include <math.h>
 
 List* initLayersList(int argc, char** argv){
@@ -23,9 +22,33 @@ List* initLayersList(int argc, char** argv){
 }
 
 bool addLayer(List* layerList, Layer* newLay){
-	if(layerList == NULL || newLay == NULL) return false;
+	if(layerList == NULL || newLay == NULL || newLay->imgSource == NULL)
+		return false;
+		
+	int width, height;
+	Layer* firstLay = NULL;
+	Cell* savedCursor;
+	
+	//Vérifie que newLay possède les bonnes dimensions
+	//Si des calques existent déjà dans la liste
+	if(!isListEmpty(layerList)){
+		savedCursor = currentCell(layerList);
+		goToHeadList(layerList);
+		firstLay = (Layer*) nextData(layerList);
+		width = firstLay->imgSource->width;
+		height = firstLay->imgSource->height;
+		
+		if(newLay->imgSource->width != width 
+		|| newLay->imgSource->height != height){
+			fprintf(stderr, "Le calque que vous essayez d'ajouter ne possède pas les mêmes dimensions que le calque initial.\n");
+			layerList->cursor = savedCursor;
+			return false;		
+		}
+	}
 	
 	goToBottomCell(layerList);
+	
+
 	insertAfterCell(layerList, newLay);
 	
 	//La fonction place le curseur en fin de liste
@@ -35,8 +58,37 @@ bool addLayer(List* layerList, Layer* newLay){
 	return true;
 }
 
-bool generateFinalImage(List* layerList, Image* finalImage){
-	if(layerList == NULL || finalImage == NULL) return false;
+Layer* nextLayer(List* layerList){
+	if(layerList == NULL || layerList->type != LAYER)
+		return NULL;
+	return (Layer*) nextData(layerList);	
+}
+
+Layer* previousLayer(List* layerList){
+	if(layerList == NULL || layerList->type != LAYER)
+		return NULL;
+	return (Layer*) previousData(layerList);	
+}
+
+Layer* currentLayer(List* layerList){
+	if(layerList == NULL || layerList->type != LAYER)
+		return NULL;
+	return (Layer*) currentData(layerList);	
+}
+
+//Cette fonction suppose que toutes les images ont les mêmes
+//dimensions et peut donc se baser sur le calque courant
+//pour les récupérer
+bool generateFinalImage(List* layerList, Image** finalImage){
+	if(layerList == NULL || layerList->type != LAYER || finalImage == NULL)
+		return false;
+	
+	//Alloue l'espace pour stocker l'image finale
+	int width, height, maxValue;
+	width = currentLayer(layerList)->imgSource->width;
+	height = currentLayer(layerList)->imgSource->height;
+	maxValue = currentLayer(layerList)->imgSource->maxValue;
+	*finalImage = createEmptyImg(width, height, maxValue);
 	
 	//On sauvegarde l'emplacement actuel
 	//du programme dans la liste des calques
@@ -45,7 +97,7 @@ bool generateFinalImage(List* layerList, Image* finalImage){
 	goToBottomCell(layerList);
 	
 	//RECURSIVITE
-	genFinalImageRecur(layerList, currentData(layerList), finalImage);
+	genFinalImageRecur(layerList, currentData(layerList), *finalImage);
 	
 	//On remet le curseur à son ancien emplacement
 	layerList->cursor = savedCursor;

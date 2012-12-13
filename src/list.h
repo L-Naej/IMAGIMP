@@ -36,6 +36,7 @@ typedef struct list{
 	Cell* bottom;
 	
 	int size;
+	int position;
 	LIST_TYPE type;
 } List;
 
@@ -67,6 +68,8 @@ Cell* currentCell(List* list);
 /**
  * Déplace le curseur de la liste sur le
  * prochain Cell et le renvoie.
+ * Si le curseur était sur la dernère cellule,
+ * renvoie NULL mais ne bouge pas le curseur.
  */
 Cell* nextCell(List* list);
 
@@ -161,12 +164,12 @@ Cell* getCellByPosition(List* list, int position);
 /**
  * Enlève le Cell de la liste étant à la position
  * demandée (le premier Cell est à la position 1).
- * Ne libère pas la mémoire allouée, le Cell existe toujours.
+ * Libère la mémoire allouée pour le Cell mais pas pour le userData.
  * Si le curseur était sur le Cell enlevé, il va sur le Cell 
  * ayant pris sa position dans la liste.
- * Renvoie le pointeur vers le Cell enlevé de la liste.
+ * Renvoie le pointeur vers le userData enlevé de la liste.
  */
-Cell* delCellByPosition(List* list, int position);
+void* delCellByPosition(List* list, int position);
 
 /**
  * Supprime le Cell de la liste étant à la position
@@ -178,14 +181,9 @@ Cell* delCellByPosition(List* list, int position);
 void freeCellByPosition(List* list, int position);
 
 /**
- * Vide la mémoire prise par la Cell pointée par
- * cell.
- */
-void freeCell(Cell* cell);
-
-/**
- * Enlève le Cell l de la liste.
- * Ne libère pas la mémoire allouée, le userData du Cell existe toujours.
+ * Enlève le Cell l de la liste et libère la mémoire prise par la
+ * structure Cell.
+ * Ne libère pas la mémoire allouée par le userData du Cell qui existe toujours.
  * Si le curseur était sur le Cell enlevé, il va sur le Cell 
  * ayant pris sa position dans la liste.
  * Renvoie le pointeur vers le userData du Cell enlevé de la liste.
@@ -193,23 +191,37 @@ void freeCell(Cell* cell);
 void* delCellInList(List* list, Cell* c);
 
 /**
- * Supprime le Cell l de la liste.
+ * Supprime le Cell l de la liste et libère la mémoire prise par la
+ * structure Cell.
  * Si le curseur était sur le Cell enlevé, il va sur le Cell 
  * ayant pris sa position dans la liste.
- * Libère la mémoire allouée, le Cell n'existe plus.
+ * Libère la mémoire allouée pour le userData qui n'existe plus.
  */
 void freeCellInList(List* list, Cell* c);
 
+/**
+ * Vide la mémoire prise par la Cell pointée par
+ * cell. Ne libère pas la mémoire pointée par le userData.
+ */
+void freeCell(Cell* cell);
+
+/**
+ * Vide la mémoire prise par la Cell pointée par
+ * cell. Libère la mémoire pointée par le userData.
+ * Le type spécifié permet de libérer correctement
+ * la mémoire prise par le userData.
+ */
+void freeCellComplete(Cell* cell, LIST_TYPE type);
+
 /*
  * Libère une liste de la zone mémoire
- * mais ne supprime pas ses cellules (les Cells
- * qu'elle contient).
+ * mais ne supprime pas les userData des cellules.
  */
 void freeList(List* list);
 
 /*
  * Libère une liste de la zone mémoire
- * ainsi que les cellules (Cells) qu'elle contient.
+ * ainsi que les userData contenus dans ses cellules.
  */
 void freeListComplete(List* list);
 

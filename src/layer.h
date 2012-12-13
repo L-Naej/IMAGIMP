@@ -18,8 +18,8 @@
 
 
 typedef enum layer_operation{
-	SUM,
-	MULTIPLICATION
+	SUM = 1,
+	MULTIPLICATION = 2
 } LAYER_OP;
 
 
@@ -51,9 +51,6 @@ Layer* createEmptyLayer(int w, int h);
 
 /**
  * Libère la mémoire du layer pointé par l
- * Attention : n'enlève pas ce layer d'une éventuelle liste
- * (fonction bas niveau) et ne supprime pas les références à ce layer qui
- * peuvent exister dans d'autre layer.
  * @param l le layer à libérer
  */
 void freeLayer(Layer* l);
