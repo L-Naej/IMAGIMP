@@ -90,6 +90,23 @@ int printDirectory(const char dirName[]){
 	return maxNameLenght;
 }
 
+//FAQ developpez.com
+char * readStdin(char * buffer, size_t taille){
+	char * result = fgets(buffer, taille, stdin);
+
+	if (result != NULL){
+		char * lf = strchr(buffer, '\n'); /* On cherche le caractere '\n'. */
+		if (lf != NULL) /* S'il est present, ... */
+			*lf = '\0'; /* ... on le supprime    */
+		else
+			clearStdin();
+		
+	}
+	
+	return result;
+}
+
+//FAQ developpez.com
 void clearStdin(){
 	char c;
 	do {

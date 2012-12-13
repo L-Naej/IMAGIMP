@@ -41,6 +41,20 @@ typedef struct list{
 } List;
 
 /**
+ * Structure rajoutée pour la sauvegarde de 
+ * l'état de la liste. Retournée par la fonction
+ * saveListState(List*), et fournie en argument
+ * à restoreListState(ListState*), cette structure permet à 
+ * une fonction de se déplacer au sein d'une liste et
+ * de la repositionner à son état initial après coup.
+ */
+typedef struct list_state{
+	struct list* savedList;
+	struct cell* savedCell;
+	int savedPosition;
+} ListState;
+
+/**
  * Créé une cellule dont le champs Cell->userData pointe 
  * sur userData.
  * Cette cellule n'est reliée à aucune autre.
@@ -224,6 +238,22 @@ void freeList(List* list);
  * ainsi que les userData contenus dans ses cellules.
  */
 void freeListComplete(List* list);
+
+/**
+ * Voir struct Cursor définie en tête de ce
+ * fichier.
+ * Ne pas oublier de libérer la mémoire
+ * allouée pour le ListState après utilisation.
+ */
+ListState* saveListState(List* list);
+
+/**
+ * Voir struct Cursor définie en tête de ce 
+ * fichier.
+ * Ne pas oublier de libérer la mémoire
+ * allouée pour le ListState après utilisation.
+ */
+void restoreListState(ListState* state);
 
 /**
  * Affiche une liste dans la console (debug, stderr)

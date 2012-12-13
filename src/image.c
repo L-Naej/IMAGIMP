@@ -76,6 +76,15 @@ Image* loadImage(char* fileName){
 	
 	fclose(imgFile);
 	
+	//Le programme ne gère que le PPM P6
+	if(img->format != 6){
+		fprintf(stderr, "Format de l'image non supporté.\n");
+		free(img->name);
+		free(img->comments);
+		free(img);
+		return NULL;
+	}
+	
 	//Allocation mémoire pour les lignes de pixels
 	nPix = (img->width)*(img->height);
 	
@@ -141,9 +150,9 @@ void freeImage(Image* img){
 
 bool saveImage(Image* img){
 	FILE* imgFile = NULL;
-	//Format : P+num+\n+\0; dim : largeur+ +hauteur+\0
+	//Format : P+num+\0; dim : largeur+ +hauteur+\0
 	//Maxval : 999+\0
-	char format[4], dim[4+1+4+1], maxVal[4];
+	char format[3], dim[4+1+4+1], maxVal[4];
 	long nPix;
 	
 	if(img == NULL || img->arrayRGB == NULL){
@@ -153,8 +162,8 @@ bool saveImage(Image* img){
 	
 	
 	if(img->name == NULL){
-		img->name = (char*) malloc((strlen("noname.ppm")+1)*sizeof(char));
-		strcpy(img->name,"noname.ppm");
+		img->name = (char*) malloc((strlen("./images/noname.ppm")+1)*sizeof(char));
+		strcpy(img->name,"./images/noname.ppm");
 	}
 	
 	imgFile = fopen(img->name, "w");
@@ -173,16 +182,23 @@ bool saveImage(Image* img){
 	 * jusqu'à ce que fputs réussisse.
 	 */
 	
-	sprintf(format,"P%d\n",img->format);
+	//Ecriture format
+	sprintf(format,"P%d",img->format);
 	while(fputs(format, imgFile) == EOF);
+	while(fputs("\n", imgFile) == EOF);
+	fflush(imgFile);
 	
+	//Ecriture taille
 	sprintf(dim,"%d %d", img->width,img->height);
 	while(fputs(dim, imgFile) == EOF);
 	while(fputs("\n", imgFile) == EOF);
+	fflush(imgFile);
 	
+	//Ecriture maxVal
 	sprintf(maxVal, "%d", img->maxValue);
 	while(fputs(maxVal, imgFile) == EOF);
 	while(fputs("\n", imgFile) == EOF);
+	fflush(imgFile);
 	
 	if(img->comments != NULL){
 		fputs(img->comments,imgFile);
@@ -221,6 +237,7 @@ Image* createEmptyImg(int w, int h, int maxValue){
 	
 	if(img == NULL) return NULL;
 	
+	img->format = 6;//PPM P6
 	img->name = NULL;
 	img->comments = NULL;
 	

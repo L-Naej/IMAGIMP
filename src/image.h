@@ -18,16 +18,25 @@ typedef struct image{
 	
 }Image;
 
-//Charge une image depuis le disque dur
+/*
+ * Charge une image depuis le disque dur.
+ * Attention : ne gère que le format PPM P6 (ASCII/binaire).
+ * Si le fichier n'est pas de ce format, affiche
+ * une erreur et renvoie NULL.
+ */
 Image* loadImage(char* fileName);
 
-/*Sauvegarde une image sur le disque dur
- *Renvoie true si la sauvegarde s'est bien passée,
- *false sinon.
+/* Sauvegarde une image sur le disque dur (peu importe son format
+ * normalement mais notre programme ne gère que le PPM P6).
+ * Renvoie true si la sauvegarde s'est bien passée,
+ * false sinon.
  */
 bool saveImage(Image* img);
 
-//Créé une image vide blanche (tous les pixels à maxValue) de dimension w*h
+/*
+ * Créé une image vide blanche (tous les pixels à maxValue) de dimension w*h
+ * au format PPM P6 (ASCII/binaire).
+ */
 Image* createEmptyImg(int w, int h, int maxValue);
 
 /**

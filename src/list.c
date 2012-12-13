@@ -110,10 +110,12 @@ int listCountElem(List* list){
 	int size = 0;
 	if(list == NULL) return size;
 	
-	Cell* savedCursor = list->cursor;
+	ListState* state = saveListState(list);
 	goToHeadList(list);
 	while(nextCell(list) != NULL) size++;
-	list->cursor = savedCursor;
+	
+	restoreListState(state);
+	free(state);
 	
 	return size;
 }
@@ -445,7 +447,7 @@ void dumpList(List* list){
 		return;
 	}
 	
-	Cell* savedCursor = list->cursor;
+	ListState* state = saveListState(list);
 	goToHeadList(list);
 
 	
@@ -471,6 +473,59 @@ void dumpList(List* list){
 	}
 	printf("\n----->Fin Affichage Liste (Adresse : %p)\n", list);
 	
-	list->cursor = savedCursor;
+	restoreListState(state);
+	free(state);
 }
 
+ListState* saveListState(List* list){
+	if(list == NULL) return NULL;
+	
+	ListState* state = (ListState*) malloc(sizeof(ListState));
+	if(state == NULL) return NULL;
+	state->savedList = list;
+	state->savedCell = currentCell(list);
+	state->savedPosition = list->position;
+	
+	return state;
+}
+
+void restoreListState(ListState* state){
+	if(state == NULL || state->savedList == NULL)
+		return;
+	
+	Cell* curCell = NULL;
+	
+	goToHeadList(state->savedList);
+	//Cas spécial : on était en tête (curseur à NULL), rien à faire !
+	if(state->savedCell == NULL){
+		return;
+	}
+	//SINON
+	//On vérifie que la Cell sauvegardée n'est pas morte
+	//entre temps en allant à son ancienne position et en checkant
+	//qu'elle est toujours là.
+	curCell = nextCell(state->savedList);
+	while( curCell != NULL ){
+		//Si on trouve la Cell, on peut partir on est désormais dessus !
+		if(curCell == state->savedCell){
+			return;
+		}
+			
+		curCell = nextCell(state->savedList);
+	}
+	
+
+	//Si la cell existe encore, ou bien qu'elle n'existe plus
+	//mais que  son ancienne position dépasse
+	//la taille actuelle de la liste, on s'arrête là (dans le
+	//2eme cas le curseur est donc à la fin).
+	if(curCell != NULL 
+	|| state->savedList->size < state->savedPosition) return;
+	
+	//Si la Cell n'existe plus (curCell == NULL), on se positionne
+	// à son ancienne...position
+	goToHeadList(state->savedList);
+	while(state->savedList->position != state->savedPosition ){
+		nextCell(state->savedList);
+	}
+}

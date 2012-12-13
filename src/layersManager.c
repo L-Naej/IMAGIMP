@@ -27,12 +27,12 @@ bool addLayer(List* layerList, Layer* newLay){
 		
 	int width, height;
 	Layer* firstLay = NULL;
-	Cell* savedCursor;
+	ListState* state;
 	
 	//Vérifie que newLay possède les bonnes dimensions
 	//Si des calques existent déjà dans la liste
 	if(!isListEmpty(layerList)){
-		savedCursor = currentCell(layerList);
+		state = saveListState(layerList);
 		goToHeadList(layerList);
 		firstLay = (Layer*) nextData(layerList);
 		width = firstLay->imgSource->width;
@@ -41,7 +41,8 @@ bool addLayer(List* layerList, Layer* newLay){
 		if(newLay->imgSource->width != width 
 		|| newLay->imgSource->height != height){
 			fprintf(stderr, "Le calque que vous essayez d'ajouter ne possède pas les mêmes dimensions que le calque initial.\n");
-			layerList->cursor = savedCursor;
+			restoreListState(state);
+			free(state);
 			return false;		
 		}
 	}
@@ -92,7 +93,7 @@ bool generateFinalImage(List* layerList, Image** finalImage){
 	
 	//On sauvegarde l'emplacement actuel
 	//du programme dans la liste des calques
-	Cell* savedCursor = currentCell(layerList);
+	ListState* state = saveListState(layerList);
 	
 	goToBottomCell(layerList);
 	
@@ -100,7 +101,8 @@ bool generateFinalImage(List* layerList, Image** finalImage){
 	genFinalImageRecur(layerList, currentData(layerList), *finalImage);
 	
 	//On remet le curseur à son ancien emplacement
-	layerList->cursor = savedCursor;
+	restoreListState(state);
+	free(state);
 	
 	return true;
 }

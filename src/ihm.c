@@ -232,24 +232,10 @@ void userAddLayer(List* layerList){
 	
 	printf("=> ");
 	strcpy(fileChosen, "./images/");
-	clearStdin();
 	//+1 car sinon fgets s'arrête à maxNameLenght-1
-	fgets(fileChosen + strlen("./images/"), maxNameLenght+1, stdin);
-	//fgets copie le retour à la ligne si le nom du fichier est plus
-	//court que maxNameLenght, il faut le supprimer sinon
-	//le nom du fichier est invalide
-	char* brLine = NULL;
-	brLine = strchr(fileChosen,'\n');
-	if(brLine != NULL)
-		*brLine = '\0';
+	readStdin(fileChosen + strlen("./images/"), maxNameLenght+1);
 	
-	//Choix opacité
-	opacity = userSetOpacity();
-	
-	//Choix opération
-	operation = userSetLayerOp();
-	
-	//Chargement de l'image
+		//Chargement de l'image
 	img = loadImage(fileChosen);
 	
 	//Ne sert plus
@@ -259,6 +245,12 @@ void userAddLayer(List* layerList){
 		fprintf(stderr, " Création du calque annulée.\n");
 		return;
 	} 
+	
+	//Choix opacité
+	opacity = userSetOpacity();
+	
+	//Choix opération
+	operation = userSetLayerOp();
 	
 	//Création du layer et définition de ses champs
 	newLay = createLayer(img, opacity, operation);
@@ -289,16 +281,17 @@ void userAddLayer(List* layerList){
 
 double userSetOpacity(){
 	double opacity;
+	char buf[20]; //On vise large
 	
-	clearStdin();
+	
 	printf("\nDéfinissez l'opacité du calque (entre 0 et 1 compris) : ");
-	clearStdin();
-	scanf("%lf", &opacity);
-	while(opacity > 1.0 || opacity < 0.0){
+	readStdin(buf, 20);
+	opacity = atof(buf);
+	//scanf("%lf", &opacity);
+	while(!isdigit(buf[0]) || (opacity = atof(buf) ) > 1.0 || opacity < 0.0){
 		fprintf(stderr, "Opacité rentrée non comprise entre 0 et 1");
 		printf("\nDéfinissez l'opacité du calque (entre 0 et 1 compris) : ");
-		clearStdin();
-		scanf("%lf", &opacity);
+		readStdin(buf,20);
 	}
 	
 	
@@ -308,16 +301,15 @@ double userSetOpacity(){
 LAYER_OP userSetLayerOp(){
 	int opNum;
 	LAYER_OP operation;
+	char buf[2];
 	
 	printf("\nChoisissez l'opération de mélange du calque (entrez le nombre correspondant) : \n");
 	printf("%d.Somme\n%d.Multiplication\n=>", SUM, MULTIPLICATION);
-	clearStdin();
-	scanf("%d", &opNum);
-	while(opNum != SUM && opNum != MULTIPLICATION){
-		printf("\nChoisissez l'opération de fusion du calque (entrez le nombre correspondant) : \n");
+	readStdin(buf,2);
+	while( !isdigit(buf[0]) ||( (opNum = atoi(buf) ) != SUM && opNum != MULTIPLICATION) ){
+		printf("\nErreur de frappe.\nChoisissez l'opération de mélange du calque (entrez le nombre correspondant) : \n");
 		printf("%d.Somme\n%d.Multiplication\n=>", SUM, MULTIPLICATION);
-		clearStdin();
-		scanf("%d", &opNum);
+		readStdin(buf, 2);
 	}
 	
 	operation = opNum;
@@ -344,20 +336,16 @@ void userSaveFinalImage(List* layerList){
 	printf("Sauvegarde de l'image finale.\n");
 	printf("Entrez le nom de l'image que vous voulez sauvegarder (max 50 caractères) : \n");
 	
-	clearStdin();
-	fgets(imgName + 9, 51, stdin);
-	//fgets copie le retour à la ligne si le nom du fichier est plus
-	//court que maxNameLenght, il faut le supprimer sinon
-	//le nom du fichier est invalide
-	char* brLine = NULL;
-	brLine = strchr(imgName,'\n');
-	if(brLine != NULL)
-		*brLine = '\0';
+	readStdin(imgName + 9, 51);
 		
 	if(finalImage == NULL){
 		generateFinalImage(layerList, &finalImage);
-		imgAddName(finalImage, imgName);
 	}
+
+	if (! imgAddName(finalImage, imgName) ){
+		fprintf(stderr, "Le nommage de l'image a échoué. Nouveau nom : noname.ppm\n");
+	}
+	
 	if( ! saveImage(finalImage) ){
 		fprintf(stderr, "Une erreur est survenue pendant la sauvegarde de l'image finale.\n");
 	}
@@ -367,7 +355,7 @@ void userSaveFinalImage(List* layerList){
 	
 }
 
-//TO DO
+//A FINIR
 void keyboardListener(unsigned char c, int x, int y){
 	//Définie dans imagimp.c
 	extern List* layerList;
@@ -434,7 +422,9 @@ void keyboardListener(unsigned char c, int x, int y){
 		case 's':
 			userSaveFinalImage(layerList);
 		break;
-			
+		case ' ' :
+			displayCommands();
+		break;
 		default : printf("Touche non reconnue.\n");
 		break;
 	}
@@ -477,6 +467,21 @@ void exitProgramClean(){
 		freeListComplete(layerList);
 }
 
+void displayCommands(){
+ 	printf("\n\n****** Commandes utilisateurs ******\n\n");
+	puts("KEY_LEFT : calque précédent");
+	puts("KEY_RIGHT : calque suivant");
+	puts("ESCAPE : quitter le programme");
+	puts("SPACE : afficher les commandes");
+	puts("a: ajouter un calque");
+	puts("g: générer image finale");
+	puts("c: afficher le layer courant (utile si on est sur l'image finale)");
+	puts("v: ajouter un calque vierge");
+	puts("o: modifier l'opacité du calque courant");
+	puts("m: modifier la fonction de mélange du calque courant");
+	puts("d: supprimer le calque courant");
+	puts("s: sauvegarder l'image finale");
+}
 
 
 

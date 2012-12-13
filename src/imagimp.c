@@ -39,7 +39,8 @@ int main(int argc, char** argv){
 	//FIN TEST
 	
 	goToHeadList(layerList);
-	//printState();
+	printf("\n\n\tAppuyez sur ESPACE pour afficher la liste des commandes.\n");
+	printState();
 	
 	Image* imgSource = ((Layer*)nextData(layerList))->imgSource;
 	initGLIMAGIMP(imgSource->width, imgSource->height, imgSource->arrayRGB);

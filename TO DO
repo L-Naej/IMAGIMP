@@ -1,19 +1,14 @@
+BUG LIST
+----------------------------
 
 TO DO LIST
 -------------------------
 -terminer les lut
 -Créer fonction freeLut et l'appeler dans freeCellInList et freeCellByPosition
 
--sécuriser les ajouts de calques pour que tous les calques aient la même taille. Cette taille est imposée par la taille du premier calque.//Normalement fait, vérifier que cest bien fait partout
-
 -Finir de programmer l'interface 
 
-- faire une fonction de saisie clavier sécurisée et modifier tous les appels fgets etc par ça dans ihm.c
-
 -Pour les listes :
-	*Ajouter une fonctionnalité de sauvegarde du curseur
-	*Modifier tous les endroits où le curseur est sauvé "à la main"
-	pour exploiter cette nouvelle fonctionnalité.
 	*Cacher autant que possible l'implémentation des listes, c'est-à-dire
 	 ne permettre de les manipuler qu'au travers des fonctions de list.h
 	 et définir les structures dans le .c. (accès au champs impossibles

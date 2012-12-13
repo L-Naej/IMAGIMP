@@ -40,6 +40,13 @@ void invertPPMArray(unsigned char array[], long int width, long int height);
 int printDirectory(const char dirName[]);
 
 /**
+ * Lecture sécurisée du clavier (stdin).
+ * Vide stdin après utilisation en appelant
+ * clearStdin()
+ */
+char * readStdin(char * buffer, size_t taille);
+
+/**
  * Vide le buffer d'entrée stdin.
  */
 void clearStdin();

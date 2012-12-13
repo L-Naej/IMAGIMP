@@ -8,7 +8,7 @@
  * KEY_LEFT : calque précédent
  * KEY_RIGHT : calque suivant
  * ESCAPE : quitte le programme
- * SPACE : afficher les commandes (pas encore implémenté)
+ * SPACE : afficher les commandes
  * a: ajouter un calque
  * g: générer image finale
  * c: affiche le layer courant (utile si on est sur l'image finale)
@@ -16,7 +16,7 @@
  * o: modifier l'opacité du calque courant
  * m: modifier la fonction de mélange du calque courant
  * d: supprimer le calque courant
- * s: sauvegarde l'image finale (si elle existe)
+ * s: sauvegarde l'image finale
  */
 
 /**
@@ -92,6 +92,12 @@ LAYER_OP userSetLayerOp();
 bool userDelCurrentLayer(List* layerList);
 
 /**
+ * Sauvegarde l'image finale, résultat de
+ * la succession des calques et de leurs LUTs.
+ */
+void userSaveFinalImage(List* layerList);
+
+/**
  * Fonction de callback appelée lors de l'appui
  * sur une touche "normale" du clavier.
  * @param c le caractère saisi
@@ -116,4 +122,10 @@ void keyboardSpecialListener(int c, int x, int y);
  * Libère la mémoire avant de fermer le programme.
  */
 void exitProgramClean();
+
+/**
+ * Affiche dans la console la liste des
+ * commandes utilisateur du programme.
+ */
+void displayCommands();
 #endif
