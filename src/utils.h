@@ -38,4 +38,10 @@ void invertPPMArray(unsigned char array[], long int width, long int height);
  * Retourne la longueur du plus long nom de fichier.
  */
 int printDirectory(const char dirName[]);
+
+/**
+ * Vide le buffer d'entrée stdin.
+ */
+void clearStdin();
+
 #endif

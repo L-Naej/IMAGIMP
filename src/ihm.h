@@ -16,6 +16,7 @@
  * o: modifier l'opacité du calque courant
  * m: modifier la fonction de mélange du calque courant
  * d: supprimer le calque courant
+ * s: sauvegarde l'image finale (si elle existe)
  */
 
 /**

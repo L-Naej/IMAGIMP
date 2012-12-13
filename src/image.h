@@ -21,7 +21,10 @@ typedef struct image{
 //Charge une image depuis le disque dur
 Image* loadImage(char* fileName);
 
-//Sauvegarde une image sur le disque dur
+/*Sauvegarde une image sur le disque dur
+ *Renvoie true si la sauvegarde s'est bien passée,
+ *false sinon.
+ */
 bool saveImage(Image* img);
 
 //Créé une image vide blanche (tous les pixels à maxValue) de dimension w*h

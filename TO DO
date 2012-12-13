@@ -8,6 +8,8 @@ TO DO LIST
 
 -Finir de programmer l'interface 
 
+- faire une fonction de saisie clavier sécurisée et modifier tous les appels fgets etc par ça dans ihm.c
+
 -Pour les listes :
 	*Ajouter une fonctionnalité de sauvegarde du curseur
 	*Modifier tous les endroits où le curseur est sauvé "à la main"

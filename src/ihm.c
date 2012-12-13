@@ -13,6 +13,10 @@
  */
 int findNextLut(int argc, char** argv, int index, Lut** lt);
 
+//Pour pouvoir libérer la mémoire on doit conserver le 
+//pointeur entre deux appels de cette fonction
+Image* finalImage = NULL; 
+
 void initIHM(){
 	fixeFonctionClavier(keyboardListener);	
 	fixeFonctionClavierSpecial(keyboardSpecialListener);
@@ -207,11 +211,19 @@ void userAddLayer(List* layerList){
 	Layer* newLay;
 	double opacity;
 	LAYER_OP operation; 
+	int strLenght = 0;
+	
 	
 	//Choix de l'image
 	printf("Entrez le nom de l'image source voulue parmis celles qui vous sont proposées :\n");
 	maxNameLenght = printDirectory("./images");
-	fileChosen = (char*) calloc(strlen("./images/") + maxNameLenght + 1,sizeof(char));
+	if(maxNameLenght == 0){
+		fprintf(stderr,"Erreur lors de l'affichage du dossier images (ou dossier vide). Abandon de l'ajout de calque.\n");
+		return;
+	}
+	strLenght = strlen("./images/") + maxNameLenght + 1;
+	
+	fileChosen = (char*) calloc(strLenght,sizeof(char));
 	
 	if(fileChosen == NULL){
 		fprintf(stderr, "Erreur allocation mémoire.\n");
@@ -220,10 +232,16 @@ void userAddLayer(List* layerList){
 	
 	printf("=> ");
 	strcpy(fileChosen, "./images/");
-	fgets(fileChosen + strlen("./images/"), maxNameLenght, stdin);
-	//fgets copie le retour à la ligne, il faut le supprimer sinon
+	clearStdin();
+	//+1 car sinon fgets s'arrête à maxNameLenght-1
+	fgets(fileChosen + strlen("./images/"), maxNameLenght+1, stdin);
+	//fgets copie le retour à la ligne si le nom du fichier est plus
+	//court que maxNameLenght, il faut le supprimer sinon
 	//le nom du fichier est invalide
-	fileChosen[strlen(fileChosen)-1] = '\0';
+	char* brLine = NULL;
+	brLine = strchr(fileChosen,'\n');
+	if(brLine != NULL)
+		*brLine = '\0';
 	
 	//Choix opacité
 	opacity = userSetOpacity();
@@ -272,13 +290,17 @@ void userAddLayer(List* layerList){
 double userSetOpacity(){
 	double opacity;
 	
+	clearStdin();
 	printf("\nDéfinissez l'opacité du calque (entre 0 et 1 compris) : ");
+	clearStdin();
 	scanf("%lf", &opacity);
 	while(opacity > 1.0 || opacity < 0.0){
 		fprintf(stderr, "Opacité rentrée non comprise entre 0 et 1");
 		printf("\nDéfinissez l'opacité du calque (entre 0 et 1 compris) : ");
+		clearStdin();
 		scanf("%lf", &opacity);
 	}
+	
 	
 	return opacity;
 }
@@ -286,14 +308,18 @@ double userSetOpacity(){
 LAYER_OP userSetLayerOp(){
 	int opNum;
 	LAYER_OP operation;
+	
 	printf("\nChoisissez l'opération de mélange du calque (entrez le nombre correspondant) : \n");
 	printf("%d.Somme\n%d.Multiplication\n=>", SUM, MULTIPLICATION);
+	clearStdin();
 	scanf("%d", &opNum);
 	while(opNum != SUM && opNum != MULTIPLICATION){
 		printf("\nChoisissez l'opération de fusion du calque (entrez le nombre correspondant) : \n");
 		printf("%d.Somme\n%d.Multiplication\n=>", SUM, MULTIPLICATION);
+		clearStdin();
 		scanf("%d", &opNum);
 	}
+	
 	operation = opNum;
 	return operation;
 }
@@ -312,6 +338,35 @@ bool userDelCurrentLayer(List* layerList){
 	return true;
 }
 
+void userSaveFinalImage(List* layerList){
+	char imgName[51] = "./images/";
+	imgName[51] = '\0';
+	printf("Sauvegarde de l'image finale.\n");
+	printf("Entrez le nom de l'image que vous voulez sauvegarder (max 50 caractères) : \n");
+	
+	clearStdin();
+	fgets(imgName + 9, 51, stdin);
+	//fgets copie le retour à la ligne si le nom du fichier est plus
+	//court que maxNameLenght, il faut le supprimer sinon
+	//le nom du fichier est invalide
+	char* brLine = NULL;
+	brLine = strchr(imgName,'\n');
+	if(brLine != NULL)
+		*brLine = '\0';
+		
+	if(finalImage == NULL){
+		generateFinalImage(layerList, &finalImage);
+		imgAddName(finalImage, imgName);
+	}
+	if( ! saveImage(finalImage) ){
+		fprintf(stderr, "Une erreur est survenue pendant la sauvegarde de l'image finale.\n");
+	}
+	else{
+		printf("%s sauvegardée.\n", imgName);
+	}
+	
+}
+
 //TO DO
 void keyboardListener(unsigned char c, int x, int y){
 	//Définie dans imagimp.c
@@ -319,7 +374,7 @@ void keyboardListener(unsigned char c, int x, int y){
 	
 	//On ne pas apparemment pas déclarer une
 	//variable dans un switch...
-	Image* finalImage = NULL;
+	
 	double opacity;
 	LAYER_OP operation;
 	
@@ -333,6 +388,9 @@ void keyboardListener(unsigned char c, int x, int y){
 			printState();
 		break;
 		case 'g':
+			//Si elle existait déjà on la supprime (il y a peut-être
+			//de nouveaux calques ou de nouveaux LUT)
+			freeImage(finalImage);
 			generateFinalImage(layerList, &finalImage);
 			displayImage(finalImage);
 			printf("Affichage du résultat final. ");
@@ -373,6 +431,10 @@ void keyboardListener(unsigned char c, int x, int y){
 				printf("Un seul calque est présent, vous ne pouvez pas le supprimer.\n");
 			printState();
 		break;
+		case 's':
+			userSaveFinalImage(layerList);
+		break;
+			
 		default : printf("Touche non reconnue.\n");
 		break;
 	}

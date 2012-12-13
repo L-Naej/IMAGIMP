@@ -1,6 +1,7 @@
 #include "utils.h"
 #include "image.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -87,4 +88,11 @@ int printDirectory(const char dirName[]){
 	else
 		perror ("Couldn't open the directory");
 	return maxNameLenght;
+}
+
+void clearStdin(){
+	char c;
+	do {
+	  c = getchar();
+	} while (c != '\n' && c != EOF);
 }
