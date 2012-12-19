@@ -5,6 +5,7 @@
 #include <string.h>
 #include "layer.h"
 #include "layersManager.h"
+#include "review.h"
 
 /**
  * Fonction interne utilisée pour trouvé le prochain LUT
@@ -193,8 +194,12 @@ void userAddEmptyLayer(List* layerList){
 	//et détecte si la taille de l'image est valide.
 	//On n'a donc pas à s'en soucier
 	if(addLayer(layerList, newLay)){
+		bool review = recordLayerOperation(layerList, newLay, CAL1);
 		printf("L'ajout du calque a réussi.\n");
 		displayCurrentLayer(layerList);
+		
+		if(!review) 
+			fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");
 	}
 	else{
 		printf("L'ajout du calque a échoué.\n");
@@ -268,8 +273,12 @@ void userAddLayer(List* layerList){
 	//AddLayer fait pointer la liste sur le dernier calque,
 	//l'on n'a donc pas à s'en soucier
 	if(addLayer(layerList, newLay)){
+		bool review = recordLayerOperation(layerList, newLay, CAL1);
 		printf("L'ajout du calque a réussi.\n");
 		displayCurrentLayer(layerList);
+		
+		if(!review) 
+			fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");
 	}
 	else{
 		printf("L'ajout du calque a échoué.\n");
@@ -317,17 +326,8 @@ LAYER_OP userSetLayerOp(){
 }
 
 bool userDelCurrentLayer(List* layerList){
-	if(layerList == NULL || layerList->type != LAYER)
-		return false;
-	//Impossible de supprimer s'il n'y a qu'un seul calque
-	if(layerList->size == 1) return false;
 	
-	Cell* c = currentCell(layerList);
-	
-	//Suppression du calque de la liste en vidant
-	//complètement la mémoire
-	freeCellInList(layerList, c);
-	return true;
+	return delCurrentLayer(layerList);
 }
 
 void userSaveFinalImage(List* layerList){
@@ -394,11 +394,17 @@ void keyboardListener(unsigned char c, int x, int y){
 		break;
 		case 'o' :
 			opacity = userSetOpacity();
+			if( !recordLayerOperation(layerList, currentLayer(layerList), CAL3)){
+				fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
+			}
 			setLayerOpacity(currentLayer(layerList), opacity);
 			printf("Opacité du calque courant modifiée à %lf\n", opacity);
 		break;
 		case 'm' :
 			operation = userSetLayerOp();
+			if( !recordLayerOperation(layerList, currentLayer(layerList), CAL4)){
+				fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
+			}
 			setLayerOperation(currentLayer(layerList), operation);
 			printf("Opération du calque courant modifiée.\n");
 		break;
@@ -413,6 +419,9 @@ void keyboardListener(unsigned char c, int x, int y){
 			if( userDelCurrentLayer(layerList) ){
 				displayCurrentLayer(layerList);
 				printf("Calque supprimé.\n");
+				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL5)){
+					fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
+				}
 				
 			}
 			else
@@ -424,6 +433,12 @@ void keyboardListener(unsigned char c, int x, int y){
 		break;
 		case ' ' :
 			displayCommands();
+		break;
+		case 'h' :
+			displayReview();
+		break;
+		case 'u' :
+			undo();
 		break;
 		default : printf("Touche non reconnue.\n");
 		break;
@@ -465,6 +480,8 @@ void exitProgramClean(){
 	extern List* layerList;
 	if(!isListEmpty(layerList))
 		freeListComplete(layerList);
+	//Suppression de l'historique
+	freeReview();
 }
 
 void displayCommands(){
@@ -481,6 +498,8 @@ void displayCommands(){
 	puts("m: modifier la fonction de mélange du calque courant");
 	puts("d: supprimer le calque courant");
 	puts("s: sauvegarder l'image finale");
+	puts("h: afficher l'historique");
+	puts("u: annuler la dernière opération");
 }
 
 

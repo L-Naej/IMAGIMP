@@ -1,6 +1,7 @@
 #include "layersManager.h"
 #include "ihm.h"
 #include "image.h"
+#include "review.h"
 #include <math.h>
 
 List* initLayersList(int argc, char** argv){
@@ -12,6 +13,9 @@ List* initLayersList(int argc, char** argv){
 	
 	if(firstLay != NULL){
 		layerList = createList(LAYER, firstLay);
+		if( !recordImgOperation(firstLay->imgSource, IM1)){
+				fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
+		}
 	}
 	else{
 		fprintf(stderr, "Impossible d'initialiser la liste des calques, le programme va quitter.\n");
@@ -75,6 +79,32 @@ Layer* currentLayer(List* layerList){
 	if(layerList == NULL || layerList->type != LAYER)
 		return NULL;
 	return (Layer*) currentData(layerList);	
+}
+
+bool delCurrentLayer(List* layerList){
+	if(layerList == NULL || layerList->type != LAYER)
+		return false;
+	//Impossible de supprimer s'il n'y a qu'un seul calque
+	if(layerList->size == 1) return false;
+	
+	Cell* c = currentCell(layerList);
+	
+	//Suppression du calque de la liste en vidant
+	//complètement la mémoire
+	freeCellInList(layerList, c);
+	return true;
+}
+
+bool delLayer(List* layerList, Layer* lay){
+	if(layerList == NULL || lay == NULL || layerList->type != LAYER)
+		return false;
+	
+	//On va au layer s'il existe et on le supprime
+	if(goToData(layerList, (void*) lay) != -1 ){
+		freeCellInList(layerList, currentCell(layerList));
+		return true;
+	}
+	else return false;
 }
 
 //Cette fonction suppose que toutes les images ont les mêmes

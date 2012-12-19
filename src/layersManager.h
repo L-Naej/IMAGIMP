@@ -47,6 +47,17 @@ Layer* nextLayer(List* layerList);
 Layer* previousLayer(List* layerList);
 
 /**
+ * Supprime le layer courant.
+ */
+bool delCurrentLayer(List* layerList);
+
+/**
+ * Supprime le layer lay de la liste des
+ * calques.
+ */
+bool delLayer(List* layerList, Layer* lay);
+
+/**
  * Génère l'image finale en partant du premier calque
  * et en allant jusqu'au dernier en appliquant toutes
  * les LUT de chaque calque. 

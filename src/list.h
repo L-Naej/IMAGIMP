@@ -11,6 +11,7 @@
 typedef enum list_type{
 	LAYER,
 	LUT,
+	REVIEW,
 	UNKNOWN
 } LIST_TYPE;
 
@@ -170,8 +171,37 @@ void goToHeadList(List* list);
 Cell* goToBottomCell(List* list);
 
 /**
+ * Se positionne à la cellule cell.
+ * Si la cell ne fait pas partie de la liste,
+ * ne bouge pas le curseur.
+ * Renvoie la position de la cellule, -1 si elle
+ * n'a pas été trouvée (cell n'existe pas).
+ */
+int goToCell(List* list, Cell* cell);
+
+/**
+ * Se positionne à la cellule contenant la donnée data.
+ * Si la donnée ne fait pas partie de la liste,
+ * ne bouge pas le curseur.
+ * Renvoie la position de la cellule, -1 si elle
+ * n'a pas été trouvée (userData n'existe pas).
+ */
+int goToData(List* list, void* userData);
+
+/**
+ * Se positionne à la cellule numéro
+ * 'position'. Si la position est
+ * plus grande que la taille, ne bouge pas le
+ * curseur. Renvoie true si la position est valide,
+ * false sinon.
+ * Position valide : 0 < position <= list->size
+ */
+bool goToPosition(List* list, int position);
+
+/**
  * Renvoie le Cell de la liste étant à la position
  * demandée (le premier Cell est à la position 1).
+ * Positionne le curseur sur cette cellule.
  */
 Cell* getCellByPosition(List* list, int position);
 
@@ -218,14 +248,6 @@ void freeCellInList(List* list, Cell* c);
  * cell. Ne libère pas la mémoire pointée par le userData.
  */
 void freeCell(Cell* cell);
-
-/**
- * Vide la mémoire prise par la Cell pointée par
- * cell. Libère la mémoire pointée par le userData.
- * Le type spécifié permet de libérer correctement
- * la mémoire prise par le userData.
- */
-void freeCellComplete(Cell* cell, LIST_TYPE type);
 
 /*
  * Libère une liste de la zone mémoire

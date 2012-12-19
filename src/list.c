@@ -1,5 +1,8 @@
 #include "list.h"
-#include "layer.h"//Pour dumpLayer
+//Pour les opérations de vidage de la mémoire
+#include "layer.h"
+#include "lut.h"
+#include "review.h"
 #include <stdlib.h>
 
 Cell* createCell(void* userData){
@@ -163,10 +166,15 @@ Cell* insertBottomCell(List* list, void* userData){
 	}
 	 
 	c->previous = list->bottom;
-	list->bottom->next = c;
+	//Cas spécial, la liste est vide
+	if(isListEmpty(list)){
+		list->head = list->bottom = c;
+	}
+	else{
+		list->bottom->next = c;
+		list->bottom = c;
+	}
 	c->next = NULL;
-	list->bottom = c;
-	
 	list->size++;
 	return c;
 }
@@ -271,14 +279,70 @@ Cell* goToBottomCell(List* list){
 	return list->cursor;
 }
 
-Cell* getCellByPosition(List* list, int position){
-	if(list == NULL || position <= 0 || position > list->size)
-		return NULL;
-	int i;
+int goToCell(List* list, Cell* cell){
+	if(list == NULL || cell == NULL)
+		return -1;
+	Cell* currentCell = NULL;
+	ListState* state = saveListState(list);
 	
+	goToHeadList(list);
+	
+	while( ( currentCell = nextCell(list) ) != cell
+		&& currentCell != NULL);
+	
+	//Si currentCell == NULL c'est qu'on n'a pas trouvé cell
+	// et il faut retourner à l'ancienne position.
+	//Sinon c'est qu'on est dessus.
+	if(currentCell == NULL){
+		restoreListState(state);
+		free(state);
+		return -1;
+	}
+	
+	free(state);
+	return list->position;
+}
+
+int goToData(List* list, void* userData){
+	if(list == NULL || userData == NULL)
+		return -1;
+	void* currentData = NULL;
+	
+	ListState* state = saveListState(list);
+	
+	goToHeadList(list);
+	
+	while( ( currentData = nextData(list) ) != userData
+		&& currentData != NULL );
+		
+	//Si currentData == NULL c'est qu'on n'a pas trouvé userData
+	// et il faut retourner à l'ancienne position.
+	//Sinon c'est qu'on est dessus.
+	if(currentData == NULL){
+		restoreListState(state);
+		free(state);
+		return -1;
+	}
+	
+	free(state);
+	return list->position;
+}
+
+bool goToPosition(List* list, int position){
+	if(list == NULL || position > list->size || position <= 0)
+		return false;
+		
+	int i;
 	//Cas spéciaux
-	if(position == 1) return list->head;
-	if(position == list->size) return list->bottom;
+	if(position == 1){
+		goToHeadList(list);
+		nextCell(list);
+		return true;
+	} 
+	if(position == list->size){
+		goToBottomCell(list);
+		return true;
+	}
 	
 	//Optimisation, woulala !
 	//Si la position est plus proche de la fin on part de la fin,
@@ -295,8 +359,13 @@ Cell* getCellByPosition(List* list, int position){
 			nextCell(list);
 		}
 	}
-	
-	return list->cursor;
+	return true;
+}
+
+Cell* getCellByPosition(List* list, int position){
+	if(goToPosition(list, position))
+		return list->cursor;
+	return NULL;
 }
 
 void* delCellByPosition(List* list, int position){
@@ -329,7 +398,6 @@ void* delCellInList(List* list, Cell* theCell){
 		list->size--;
 		//Si le curseur était sur theCell..
 		if(list->cursor == theCell){
-			printf("pret %p et %p\n", list->cursor, theCell);
 			list->cursor = list->bottom;
 			list->position = list->size;
 		}
@@ -376,6 +444,8 @@ void freeCellByPosition(List* list, int position){
 		break;
 		case LUT : freeLut((Lut*)userData);
 		break;
+		case REVIEW : freeOperation((Operation*)userData);
+		break;
 		case UNKNOWN : free(userData);
 		break;
 		default : free(userData);
@@ -389,6 +459,8 @@ void freeCellInList(List* list, Cell* c){
 		case LAYER : freeLayer((Layer*)userData);
 		break;
 		case LUT : freeLut((Lut*)userData);
+		break;
+		case REVIEW : freeOperation((Operation*)userData);
 		break;
 		case UNKNOWN : free(userData);
 		break;

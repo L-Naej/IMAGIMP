@@ -17,6 +17,8 @@
  * m: modifier la fonction de mélange du calque courant
  * d: supprimer le calque courant
  * s: sauvegarde l'image finale
+ * h: afficher l'historique
+ * u: annuler la dernière opération
  */
 
 /**
