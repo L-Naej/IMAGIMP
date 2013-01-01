@@ -9,7 +9,7 @@ typedef enum lut_function{
 	DIMCON,
 	SEPIA,
 	NEUTRAL
-} LUT_FUNCTION;
+	} LUT_FUNCTION;
 
 typedef struct lut{
 	unsigned char* inputArrayRGB;
@@ -22,13 +22,15 @@ typedef struct lut{
 	unsigned char* outputArrayB;
 	long int size;
 	int maxValue;
-	
 	LUT_FUNCTION function;
+	int valueEffect;
 }Lut;
 
 //Lut* createLut(unsigned char* inputArray, long int size, int maxVal, LUT_FUNCTION lF, int val);
 Lut* createLut(LUT_FUNCTION lF, int val);
 void freeLut(Lut* lt);
-void applyLut(Image* img,LUT_FUNCTION lF, int val);
+Lut* applyFirstLut(LUT_FUNCTION lF, int val);
+Lut* applyLut(Lut* lt, LUT_FUNCTION lF, int val);
+void applyLuttoImg(Image* img,Lut* lut);
 
 #endif

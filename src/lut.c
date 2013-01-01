@@ -33,6 +33,7 @@ Lut* createLut(LUT_FUNCTION lF, int val){
 			free(lt);
 			return NULL;
 		}
+	return lt;
 	}
 	else {
 		unsigned char* inputArrayR = NULL,*inputArrayG = NULL,*inputArrayB = NULL;
@@ -69,26 +70,9 @@ Lut* createLut(LUT_FUNCTION lF, int val){
 			free(lt->outputArrayB); free(lt->outputArrayG); free(lt->outputArrayR);
 			free(lt);
 			return NULL;
-		
 		}
+		return lt;
 	}
-		
-	switch(lF){
-		case INVERT : invertLut(lt);
-		break;
-		case ADDLUM : addLum (lt,val);
-		break;
-		case DIMLUM : dimLum (lt,val);
-		break;
-		case ADDCON : addContrast (lt,val);
-		break;
-		case DIMCON : dimContrast (lt,val);
-		break;
-		case SEPIA : sepia (lt);
-		break;
-	}
-	
-	return lt;
 }
 
 /**
@@ -102,12 +86,37 @@ void freeLut(Lut* lt){
 	free(lt);
 }
 
-
-void applyLut(Image* img,LUT_FUNCTION lF, int val){
+Lut* applyFirstLut(LUT_FUNCTION lF, int val){
+	Lut* lt=createLut(lF,val);
+	if (lt==NULL) return NULL;
+	lt=applyLut(lt,lF,val);
+	return lt;
+}
+	
+Lut* applyLut(Lut* lt, LUT_FUNCTION lF, int val){
+	if (lt==NULL) return NULL;
+	switch(lF){
+		case NEUTRAL : neutral(lt);
+		break;
+		case INVERT : invertLut(lt);
+		break;
+		case ADDLUM : addLum (lt,val);
+		break;
+		case DIMLUM : dimLum (lt,val);
+		break;
+		case ADDCON : addContrast (lt,val);
+		break;
+		case DIMCON : dimContrast (lt,val);
+		break;
+		case SEPIA : sepia (lt);
+		break;
+		}
+	return lt;
+}
+ 
+void applyLuttoImg(Image* img,Lut* lut){
 	int i;
-	if (img==NULL) return;
-	Lut* lut = createLut(lF,val);
-	if (lut==NULL) return;
+	if (img==NULL || lut==NULL ) return;
 	
 	if (lut->function==SEPIA){
 		for(i=0; i<(img->width)*(img->height)*3; i+=3){

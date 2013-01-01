@@ -11,8 +11,8 @@ LIBDIR = ./lib
 LIBS =  -lglimagimp -lglut -lGL -lGLU -lm
 # Compilateur
 CC = gcc
-SRC = src/image.c src/utils.c src/lut.c src/lutfunction.c src/imagimp.c src/list.c src/layersManager.c src/ihm.c src/layer.c src/review.c
-#src/layer.c src/list.c
+SRC = src/image.c src/utils.c src/lut.c src/lutfunction.c src/list.c src/imagimp.c  src/layersManager.c src/ihm.c src/layer.c src/review.c
+#src/list.c src/layer.c 
 SRCTEST = src/testListes.c $(SRC)
 
 all:

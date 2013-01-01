@@ -1,4 +1,5 @@
 #include "layer.h"
+#include "lut.h"
 #include <stdlib.h>
 
 /**
@@ -17,9 +18,12 @@ Layer* createLayer(Image* source, double opa, LAYER_OP operation){
 	l->opacity = opa;
 	l->operation = operation;
 	
-	//On initialise toujours un lut de départ "neutre"
-	// A FAIRE : Lut* neutralLut = createLut(blabla)
+	Lut* neutralLut = createLut(NEUTRAL,0);
+	
+	if(neutralLut == NULL) return NULL;
+	
 	l->lutList = NULL;
+	addLut(l,neutralLut);
 	
 	return l;
 }
@@ -99,24 +103,22 @@ void setLayerOperation(Layer* lay, LAYER_OP newOp){
 Image* applyLuts(Layer* lay){
 	if(lay == NULL) return NULL;
 	if(isListEmpty(lay->lutList)){
-		
+	return lay;
 	}
 	
-	//TO DO
 	Lut* currentLut = NULL;
-
+	Lut* previousLut = NULL; 
+	
 	while(nextCell(lay->lutList) != NULL){
+		if ((lay->lutList)->position == 0){
+			goToPosition(lay->lutList,1);
+		}
+		else{
+		previousLut =(Lut*) previousData(lay->lutList);
 		currentLut = (Lut*) currentData(lay->lutList);
-		
-		
+		applyLut(currentLut->inputArrayRGB, previousLut->function, previousLut->valueEffect);
+		}
 	}
 	return NULL;
 }
-
-
-
-
-
-
-
 
