@@ -30,7 +30,8 @@ Channels* allocChannels(int size){
 		chan->chan2[i] = i;
 		chan->chan3[i] = i;
 	}
-	
+	 
+	chan->size = size;
 	return chan;
 }
 
@@ -84,80 +85,33 @@ Lut* createLut(Channels* input, LUT_FUNCTION lF, int val, int maxVal){
 	
 	lt->valueEffect = val;
 	
-	if (lt->function!=SEPIA){
-		/*
-		lt->outputArrayRGB = (unsigned char*) calloc(lt->size, sizeof(unsigned char));
+	lt->channels = allocChannels(lt->maxValue +1);
 	
-		if(lt->outputArrayRGB == NULL){
-			free(lt);
-			return NULL;
-		}
-		*/
-		//Valeurs de 0 à maxValue => maxValue + 1 car il faut compter le 0
-		lt->channels = allocChannels(lt->maxValue +1);
+	switch(lt->function){
+		case NEUTRAL : neutral(lt, input);
+		break;
+		case INVERT : invertLut(lt, input);
+		break;
+		case ADDLUM : addLum (lt, input);
+		break;
+		case DIMLUM : dimLum (lt, input);
+		break;
 		
-		switch(lt->function){
-			case NEUTRAL : neutral(lt, input);
-			break;
-			case INVERT : invertLut(lt, input);
-			break;
-			case ADDLUM : addLum (lt, input);
-			break;
-			case DIMLUM : dimLum (lt, input);
-			break;
-			
-			case ADDCON : addContrast (lt, input);
-			break;
-			case DIMCON : dimContrast (lt, input);
-			break;
-			default : fprintf(stderr,"Fonction LUT inconnue.\n");
-			break;
-		}
-		
-	return lt;
+		case ADDCON : changeContrast (lt, input);
+		break;
+		case DIMCON : 
+			//On prend une valeur négative
+			lt->valueEffect = - lt->valueEffect;
+			changeContrast (lt, input);
+		break;
+		case SEPIA : sepia(lt, input);
+		break;
+		default : fprintf(stderr,"Fonction LUT inconnue.\n");
+		break;
 	}
-	//SEPIA TODO
-	/*
-	else {
-		unsigned char* inputArrayR = NULL,*inputArrayG = NULL,*inputArrayB = NULL;
-		inputArrayR=(unsigned char*) malloc((lt->maxValue)*sizeof(unsigned char));
-		inputArrayG=(unsigned char*) malloc((lt->maxValue)*sizeof(unsigned char));
-		inputArrayB=(unsigned char*) malloc((lt->maxValue)*sizeof(unsigned char));
 	
-		if(inputArrayR==NULL ||inputArrayG==NULL || inputArrayB==NULL){
-			free(lt->outputArrayRGB);
-			free(lt->inputArrayRGB);
-			free(inputArrayB); free(inputArrayG); free(inputArrayR);
-			free(lt);
-			return NULL;	
-		} 
-		
-		for(i=0;i<lt->size;i++){
-			inputArrayR[i]=i;
-			inputArrayG[i]=i;
-			inputArrayB[i]=i;
-			}
-	
-		lt->inputArrayR = inputArrayR;
-		lt->inputArrayG = inputArrayG;
-		lt->inputArrayB = inputArrayB;
-		
-		lt->outputArrayR = (unsigned char*) calloc(lt->size, sizeof(unsigned char));
-		lt->outputArrayG = (unsigned char*) calloc(lt->size, sizeof(unsigned char));
-		lt->outputArrayB = (unsigned char*) calloc(lt->size, sizeof(unsigned char));
-		
-		if(lt->outputArrayR == NULL || lt->outputArrayG == NULL || lt->outputArrayB == NULL){
-			free(lt->outputArrayRGB);
-			free(lt->inputArrayRGB);
-			free(lt->inputArrayB); free(lt->inputArrayG); free(lt->inputArrayR);
-			free(lt->outputArrayB); free(lt->outputArrayG); free(lt->outputArrayR);
-			free(lt);
-			return NULL;
-		}
-		return lt;
-	}
-	*/
-	return NULL;
+return lt;
+
 }
 
 /**
@@ -217,6 +171,8 @@ void dumpLut(Lut* lt){
 			case ADDCON : printf("ADDCON\n");
 			break;
 			case DIMCON : printf("DIMCON\n");
+			break;
+			case SEPIA : printf("SEPIA\n");
 			break;
 			default : fprintf(stderr,"Fonction LUT inconnue.\n");
 			break;

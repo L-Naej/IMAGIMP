@@ -126,11 +126,6 @@ int findNextLut(int argc, char** argv, int index, Lut** currentLut, Channels* in
 	}
 	else if(strcmp("SEPIA", argv[index]) == 0){
 		ltFunc = SEPIA;
-		if(index < argc-1 && isdigit(argv[++index][0]) ){
-			lutFuncValue = atoi(argv[index]);
-		}
-		//Sinon il y a une erreur (SEPIA a besoin d'une valeur)
-		else parseError = true;
 	}
 	else{ 
 		fprintf(stderr,"Code lUT inconnu : %s.\n", argv[index]);

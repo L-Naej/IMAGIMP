@@ -1,13 +1,10 @@
 BUG LIST
 ----------------------------
-Quand l'inversion est en début de liste des lut et que d'autres lut suivent, elle n'est pas prise en compte...
 
 TO DO LIST
 -------------------------
--terminer les lut
-
--Créer fonction freeLut et l'appeler dans freeCellInList et freeCellByPosition
-
--Finir de programmer l'interface 
+-terminer les lut : fonctionnels invert et addlum/dimlum. Contrast et sépia ne fonctionnent pas
 
 -Commenter review.h lut.h lutfunction.h
+
+-Rapport

@@ -45,17 +45,17 @@ void addLum(Lut* lt, Channels* input){
 		tmp = input->chan1[i]+lt->valueEffect;
 		if(tmp > lt->maxValue) tmp = lt->maxValue;
 		else if (tmp < 0) tmp = 0;
-		lt->channels->chan1[i] = tmp;
+		lt->channels->chan1[i] = (unsigned char) tmp;
 		
 		tmp = input->chan2[i]+lt->valueEffect;
 		if(tmp > lt->maxValue) tmp = lt->maxValue;
 		else if (tmp < 0) tmp = 0;
-		lt->channels->chan2[i] = tmp;
+		lt->channels->chan2[i] = (unsigned char) tmp;
 		
 		tmp = input->chan3[i]+lt->valueEffect;
 		if(tmp > lt->maxValue) tmp = lt->maxValue;
 		else if (tmp < 0) tmp = 0;
-		lt->channels->chan3[i] = tmp;
+		lt->channels->chan3[i] = (unsigned char) tmp;
 		
 		
 		/*
@@ -81,84 +81,89 @@ void dimLum(Lut* lt, Channels* input){
 		tmp = input->chan1[i] - lt->valueEffect;
 		if(tmp > lt->maxValue) tmp = lt->maxValue;
 		else if (tmp < 0) tmp = 0;
-		lt->channels->chan1[i] = tmp;
+		lt->channels->chan1[i] = (unsigned char) tmp;
 		
 		tmp = input->chan2[i] - lt->valueEffect;
 		if(tmp > lt->maxValue) tmp = lt->maxValue;
 		else if (tmp < 0) tmp = 0;
-		lt->channels->chan2[i] = tmp;
+		lt->channels->chan2[i] = (unsigned char) tmp;
 		
 		tmp = input->chan3[i] - lt->valueEffect;
 		if(tmp > lt->maxValue) tmp = lt->maxValue;
 		else if (tmp < 0) tmp = 0;
-		lt->channels->chan3[i] = tmp;
+		lt->channels->chan3[i] = (unsigned char) tmp;
 
-	}
-}
-
-/*Valeur de val comprises entre 1 et 100 pour une diminution*/
-
-void dimContrast(Lut* lt, Channels* input){
-	int i,tmp;
-	
-	if(lt == NULL || lt->valueEffect<=0 || lt->valueEffect>=100) return;
-	
-	for (i=0;i<lt->size;i++){
-		tmp=128+(input->chan1[i]-128)*lt->valueEffect/100;
-		if (tmp > lt->maxValue) tmp = lt->maxValue;
-		else if (tmp < 0) tmp = 0;
-		lt->channels->chan1[i] = tmp;
-		
-		tmp=128+(input->chan2[i]-128)*lt->valueEffect/100;
-		if (tmp > lt->maxValue) tmp = lt->maxValue;
-		else if (tmp < 0) tmp = 0;
-		lt->channels->chan2[i] = tmp;
-		
-		tmp=128+(input->chan3[i]-128)*lt->valueEffect/100;
-		if (tmp > lt->maxValue) tmp = lt->maxValue;
-		else if (tmp < 0) tmp = 0;
-		lt->channels->chan3[i] = tmp;
 	}
 }
 
 /*Valeur de val comprises entre 100 et 200 pour une augmentation*/
+/*Algo
+	rg := (Abs(127 - r) * Cont) Div 255;
+      gg := (Abs(127 - g) * Cont) Div 255;
+      bg := (Abs(127 - b) * Cont) Div 255;
+      If (r > 127) Then
+        r := r + rg
+      Else
+        r := r - rg;
+      If (g > 127) Then
+        g := g + gg
+      Else
+        g := g - gg;
+      If (b > 127) Then
+        b := b + bg
+      Else
+        b := b - bg;
+*/
 
-void addContrast(Lut* lt, Channels* input){
-	int i,tmp;
-	
-	if(lt == NULL || lt->valueEffect<=100 || lt->valueEffect>=200) return;
-	
-	for (i=0;i<lt->size;i++){
-		tmp = 128 + (input->chan1[i]-128) * (lt->valueEffect)/100;
-		if (tmp > lt->maxValue) tmp = lt->maxValue;
-		else if (tmp < 0) tmp = 0;
-		lt->channels->chan1[i] = tmp;
+void changeContrast(Lut* lt, Channels* input){
+
+	int i = 0, rg, gg, bg;
+	for(i = 0; i < lt->size; i++){
+		rg = (abs(127 - input->chan1[i]) * lt->valueEffect) / lt->maxValue;
+		if(input->chan1[i] > 127)
+			rg = input->chan1[i] + rg;
+		else
+			rg = input->chan1[i] - rg;
+		if(rg > lt->maxValue) rg = lt->maxValue;
+		else if (rg < 0) rg = 0;
 		
-		tmp = 128 + (input->chan2[i]-128) * (lt->valueEffect)/100;
-		if (tmp > lt->maxValue) tmp = lt->maxValue;
-		else if (tmp < 0) tmp = 0;
-		lt->channels->chan2[i] = tmp;
+		lt->channels->chan1[i] = (unsigned char) rg;
 		
-		tmp = 128 + (input->chan3[i]-128) * (lt->valueEffect)/100;
-		if (tmp > lt->maxValue) tmp = lt->maxValue;
-		else if (tmp < 0) tmp = 0;
-		lt->channels->chan3[i] = tmp;
+		gg = (abs(127 - input->chan2[i]) * lt->valueEffect) / lt->maxValue;
+		if(input->chan2[i] > 127)
+			gg = input->chan2[i] + gg;
+		else
+			gg = input->chan2[i] - gg;
+		if(gg > lt->maxValue) gg = lt->maxValue;
+		else if (gg < 0) gg = 0;
+		
+		lt->channels->chan2[i] = (unsigned char) gg;
+		
+		bg = (abs(127 - input->chan3[i]) * lt->valueEffect) / lt->maxValue;
+		if(input->chan3[i] > 127)
+			bg = input->chan3[i] + bg;
+		else
+			bg = input->chan3[i] - bg;
+		if(bg > lt->maxValue) bg = lt->maxValue;
+		else if (bg < 0) bg = 0;
+		
+		lt->channels->chan3[i] = (unsigned char) bg;
 	}
 }
 
-/*
-void sepia(Lut* lt){
+
+void sepia(Lut* lt, Channels* input){
 	int i;
 	if(lt == NULL) return;
 	for(i=0; i < lt->size; i++){
-		lt->outputArrayR[i] = (lt->inputArrayR[i]* .393) + (lt->inputArrayG[i]*.769) + (lt->inputArrayB[i] * .189);
+		lt->channels->chan1[i] = (unsigned char) floor( (input->chan1[i]* .393) + (input->chan2[i]*.769) + (input->chan3[i] * .189) + 0.5);
 
-		lt->outputArrayG[i] = (lt->inputArrayR[i] * .349) + (lt->inputArrayG[i] *.686) + (lt->inputArrayB[i] * .168);
+		lt->channels->chan2[i] = (unsigned char) floor( (input->chan1[i] * .349) + (input->chan2[i] *.686) + (input->chan3[i] * .168) + 0.5);
 
-		lt->outputArrayB[i] = (lt->inputArrayR[i] * .272) + (lt->inputArrayG[i] *.534) + (lt->inputArrayB[i] * .131);
-		}
+		lt->channels->chan3[i] = (unsigned char) floor( (input->chan1[i] * .272) + (input->chan2[i] *.534) + (input->chan3[i] * .131) + 0.5);
+	}
 }
-*/
+
 //Formule trouvée sur http://www.fourcc.org/fccyvrgb.php
 //in[0] = R; in[1] = G; in[2] = B
 //out[0] = Y; out[1] = U; out[2] = V

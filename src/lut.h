@@ -15,6 +15,8 @@ typedef struct {
 	unsigned char* chan1;
 	unsigned char* chan2;
 	unsigned char* chan3;
+	
+	int size;
 } Channels;
 
 typedef struct lut{

@@ -51,4 +51,14 @@ char * readStdin(char * buffer, size_t taille);
  */
 void clearStdin();
 
+/**
+ * Renvoie plus petite valeur du tableau.
+ */
+unsigned char minInTab(unsigned char* tab, int size);
+
+/**
+ * Renvoie plus grande valeur du tableau.
+ */
+unsigned char maxInTab(unsigned char* tab, int size);
+
 #endif
