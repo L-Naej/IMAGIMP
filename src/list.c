@@ -41,10 +41,10 @@ List* createList(LIST_TYPE type, void* headUserData){
 	
 	list->head->previous = NULL;
 	
-	//On place le curseur en début de liste (avant head)
-	list->cursor = NULL;	
+	//On place le curseur sur la donnée ajoutée
+	list->cursor = list->head;	
 	list->size = 1;
-	list->position = 0;
+	list->position = 1;
 	return list;
 }
 
@@ -528,7 +528,7 @@ void dumpList(List* list){
 		switch(list->type){
 			case LAYER : dumpLayer((Layer*)list->cursor->userData);
 			break;
-			case LUT: printf("de type LUT\n");
+			case LUT: dumpLut((Lut*)list->cursor->userData);
 			break;
 			case UNKNOWN : printf("de type inconnu\n");
 			 break;

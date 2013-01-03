@@ -276,6 +276,28 @@ bool imgAddName(Image* img, const char name[]){
 	return true;
 }
 
+Image* copyImage(Image* source){
+	if(source == NULL || source->arrayRGB == NULL) return NULL;
+	
+	Image* copy = createEmptyImg(source->width, source->height, source->maxValue);
+	if(copy == NULL){
+		fprintf(stderr, "Erreur mémoire lors de la copie d'une image.\n");
+		return NULL;
+	}
+	int i = 0, nPix = source->width*source->height*NB_COL_COMP;
+	
+	copy->maxValue = source->maxValue;
+	copy->width = source->width;
+	copy->height = source->height;
+	copy->format = source->format;
+	
+	for(i = 0; i < nPix; ++i){
+		copy->arrayRGB[i] = source->arrayRGB[i];
+	}
+	
+	return copy;
+}
+
 bool histoRGB (Image* img, int** hR,  int** hG,  int** hB){
 	if (img == NULL) return false;
 	if (hR==NULL || hG==NULL || hB==NULL) return false;
@@ -322,19 +344,4 @@ void dumpImage(Image* img){
 	
 }
 
-//Fonction de test à supprimer
-/*
-int main(int argc, char** argv){
-	Image* test = loadImage("images/Clown.256.ppm");
-	
-	Lut* lut=applyFirstLut(INVERT,0);
-	lut=applyLut(lut,ADDLUM,100);
-	applyLuttoImg(test,lut);
-	
-	if(test)
-		initGLIMAGIMP(test->width,test->height,test->arrayRGB);
-	else printf("debug\n");
-	free(test);
-	
-	return 0;
-}*/
+

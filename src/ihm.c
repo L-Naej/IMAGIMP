@@ -12,7 +12,7 @@
  * demandé en ligne de commande pour le premier Layer.
  * Voir sujet du projet section 2.3.4 pour plus d'infos.
  */
-int findNextLut(int argc, char** argv, int index, Lut** lt);
+int findNextLut(int argc, char** argv, int index, Lut** lt, Channels* input,  int maxValue);
 
 //Pour pouvoir libérer la mémoire on doit conserver le 
 //pointeur entre deux appels de cette fonction
@@ -55,16 +55,20 @@ Layer* parseCmdLine(int argc, char** argv){
 	
 	index = 2;
 	
-	index = findNextLut(argc, argv, index, &currentLut);
-	do{
-		if(currentLut)
-			addLut(firstLay, currentLut);
-	}while(index < argc);
+	//On se positionne sur le lut neutre
+	currentLut = (Lut*) goToBottomCell(firstLay->lutList)->userData;
+	while(index < argc){
+		index = findNextLut(argc, argv, index, &currentLut, currentLut->channels, img->maxValue);
+		
+		if(! addLut(firstLay, currentLut) ) {
+			fprintf(stderr, "Impossible de charger le LUT demandé.\n");
+		}
+	}
 	
 	return firstLay;
 }
 
-int findNextLut(int argc, char** argv, int index, Lut** currentLut){
+int findNextLut(int argc, char** argv, int index, Lut** currentLut, Channels* input, int maxValue){
 	LUT_FUNCTION ltFunc = NEUTRAL;
 	int lutFuncValue = 0;
 	
@@ -75,7 +79,7 @@ int findNextLut(int argc, char** argv, int index, Lut** currentLut){
 		ltFunc = ADDLUM;
 		//S'il existe encore un argument et que c'est un nombre
 		//il s'agit de la valeur du lut
-		if(index < argc && isdigit(argv[++index][0]) ){
+		if(index < argc-1 && isdigit(argv[++index][0]) ){
 			lutFuncValue = atoi(argv[index]);
 		}
 		//Sinon il y a une erreur (ADDLUM a besoin d'une valeur)
@@ -83,7 +87,7 @@ int findNextLut(int argc, char** argv, int index, Lut** currentLut){
 	}
 	else if(strcmp("DIMLUM", argv[index]) == 0) {
 		ltFunc = DIMLUM;
-		if(index < argc && isdigit(argv[++index][0]) ){
+		if(index < argc-1 && isdigit(argv[++index][0]) ){
 			lutFuncValue = atoi(argv[index]);
 		}
 		//Sinon il y a une erreur (DIMLUM a besoin d'une valeur)
@@ -91,7 +95,7 @@ int findNextLut(int argc, char** argv, int index, Lut** currentLut){
 	}
 	else if(strcmp("ADDCON", argv[index]) == 0){
 		ltFunc = ADDCON;
-		if(index < argc && isdigit(argv[++index][0]) ){
+		if(index < argc-1 && isdigit(argv[++index][0]) ){
 			lutFuncValue = atoi(argv[index]);
 		}
 		//Sinon il y a une erreur (ADDCON a besoin d'une valeur)
@@ -99,7 +103,7 @@ int findNextLut(int argc, char** argv, int index, Lut** currentLut){
 	}
 	else if(strcmp("DIMCON", argv[index]) == 0){
 		ltFunc = DIMCON;
-		if(index < argc && isdigit(argv[++index][0]) ){
+		if(index < argc-1 && isdigit(argv[++index][0]) ){
 			lutFuncValue = atoi(argv[index]);
 		}
 		//Sinon il y a une erreur (DIMCON a besoin d'une valeur)
@@ -110,7 +114,7 @@ int findNextLut(int argc, char** argv, int index, Lut** currentLut){
 	}
 	else if(strcmp("SEPIA", argv[index]) == 0){
 		ltFunc = SEPIA;
-		if(index < argc && isdigit(argv[++index][0]) ){
+		if(index < argc-1 && isdigit(argv[++index][0]) ){
 			lutFuncValue = atoi(argv[index]);
 		}
 		//Sinon il y a une erreur (SEPIA a besoin d'une valeur)
@@ -124,7 +128,7 @@ int findNextLut(int argc, char** argv, int index, Lut** currentLut){
 	
 	
 	if(!parseError){
-		*currentLut = createLut(ltFunc, lutFuncValue);
+		*currentLut = createLut(input, ltFunc, lutFuncValue, maxValue);
 	}
 	else{
 		*currentLut = NULL;
@@ -152,11 +156,12 @@ void displayImage(const Image* img){
 void printState(){
 	extern List* layerList;
 	Layer* lay = currentLayer(layerList);
-	//Si on était en tête de liste
+	Lut* lt = NULL;
+	
+	//Ne doit pas arriver
 	if(lay == NULL){
-		lay = nextLayer(layerList);
-		//On ne veut pas bouger le curseur
-		previousLayer(layerList);
+		fprintf(stderr, "Erreur : Aucun calque courant.\n");
+		return;
 	} 
 	
 	printf("\n----Position actuelle----\n");
@@ -171,7 +176,37 @@ void printState(){
 	if(lay->operation == SUM) printf("Somme\n");
 	else printf("Multiplication\n");
 	
-	printf("Afficher les LUT quand ce sera implémenté.\n");
+	printf("Effets appliqués : \n");
+	//On sauvegarde l'état de la liste des Lut
+	ListState* savedState = saveListState(lay->lutList);
+	goToHeadList(lay->lutList);
+	
+	while( ( lt = (Lut*)nextData(lay->lutList) ) != NULL){
+		switch(lt->function){
+			case INVERT :
+				printf("\tInversion\n");
+			break;
+			case ADDLUM :
+				printf("\tAjout de luminosité : %d\n", lt->valueEffect);
+			break;
+			case DIMLUM :
+				printf("\tDiminution de luminosité : %d\n", lt->valueEffect);
+			break;
+			case ADDCON :
+				printf("\tAjout de constraste : %d\n",lt->valueEffect);
+			break;
+			case DIMCON :
+				printf("\tDiminution de contraste : %d\n",lt->valueEffect);
+			break;
+			case SEPIA :
+				printf("\tSépia\n");
+			break;
+			case NEUTRAL : continue;
+			break;
+		}
+	}
+	restoreListState(savedState);
+	free(savedState);	
 }
 
 void userAddEmptyLayer(List* layerList){

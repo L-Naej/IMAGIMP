@@ -7,6 +7,30 @@
  */
 int cntLayerId = 0;
 
+//Fonction privée d'ajout du Lut neutre en début de liste
+bool addNeutralLut(Layer* lay, int maxValue){
+	int i = 0;
+	Channels* ntLutInput = NULL;
+	
+
+	
+	//Création de l'input pour le LUT Neutre	
+	ntLutInput = allocChannels(maxValue+1);
+	if(ntLutInput == NULL){
+		return false;
+	} 
+	
+	Lut* neutralLut = createLut(ntLutInput, NEUTRAL,0, maxValue);
+	
+	if(neutralLut == NULL){
+		freeLayer(lay);
+		return false;
+	} 
+	
+	bool success = addLut(lay,neutralLut);
+	return success;
+}
+
 Layer* createLayer(Image* source, double opa, LAYER_OP operation){
 	if(source == NULL) return NULL;
 	
@@ -18,12 +42,19 @@ Layer* createLayer(Image* source, double opa, LAYER_OP operation){
 	l->opacity = opa;
 	l->operation = operation;
 	
-	Lut* neutralLut = createLut(NEUTRAL,0);
+	//Allocation de la mémoire pour l'image finale (effets appliqués)
+	l->imgFinale = NULL;
+	l->imgFinale = copyImage(l->imgSource);
+	if(l->imgFinale == NULL){
+		fprintf(stderr, "Une erreur est survenue lors de l'allocation mémoire de l'image finale du layer %p.\n", l);
+		freeLayer(l);
+	}
 	
-	if(neutralLut == NULL) return NULL;
-	
-	l->lutList = NULL;
-	addLut(l,neutralLut);
+	if(! addNeutralLut(l, source->maxValue) ){
+		fprintf(stderr, "Une erreur est survenue lors de l'ajout du LUT neutre du layer %p.\n", l);
+		freeLayer(l);
+		return NULL;
+	}
 	
 	return l;
 }
@@ -33,16 +64,23 @@ Layer* createEmptyLayer(int w, int h){
 	if(l == NULL) return NULL;
 	
 	l->id = ++cntLayerId;
+	l->imgSource = NULL;
+	l->imgFinale = NULL;
 	l->imgSource = createEmptyImg(w,h, DEFAULT_MAX_VAL);
-	if(l->imgSource == NULL){
-		free(l);
+	l->imgFinale = createEmptyImg(w,h, DEFAULT_MAX_VAL);
+	if(l->imgSource == NULL || l->imgFinale == NULL){
+		freeLayer(l);
 		return NULL;
 	}
 	
 	l->opacity = 0.0;
 	l->operation = MULTIPLICATION;
 	
-	l->lutList = NULL;
+	if(! addNeutralLut(l, l->imgSource->maxValue) ){
+		fprintf(stderr, "Une erreur est survenue lors de l'ajout du LUT neutre.\n");
+		freeLayer(l);
+		return NULL;
+	}
 	
 	return l;
 }
@@ -51,6 +89,10 @@ Layer* createEmptyLayer(int w, int h){
 void freeLayer(Layer* l){
 	if(l== NULL) return;
 	freeImage(l->imgSource);
+	freeImage(l->imgFinale);
+	
+	//Suppression des LUT
+	freeListComplete(l->lutList);
 	free(l);
 }
 
@@ -84,6 +126,9 @@ bool addLut(Layer* lay, Lut* lt){
 	}
 	
 	insertBottomCell(lay->lutList, lt);
+	goToBottomCell(lay->lutList);
+	//On applique le LUT au calque
+	applyLutToImg(lay->imgFinale, (Lut*)currentData(lay->lutList));
 	return true;
 }
 
@@ -100,25 +145,23 @@ void setLayerOperation(Layer* lay, LAYER_OP newOp){
 	lay->operation = newOp;
 }
 
+/*
 Image* applyLuts(Layer* lay){
 	if(lay == NULL) return NULL;
 	if(isListEmpty(lay->lutList)){
-	return lay;
+	return NULL;
 	}
 	
 	Lut* currentLut = NULL;
 	Lut* previousLut = NULL; 
 	
+	goToHeadList(lay->lutList);
+	
 	while(nextCell(lay->lutList) != NULL){
-		if ((lay->lutList)->position == 0){
-			goToPosition(lay->lutList,1);
-		}
-		else{
 		previousLut =(Lut*) previousData(lay->lutList);
-		currentLut = (Lut*) currentData(lay->lutList);
+		currentLut = (Lut*) nextData(lay->lutList);
 		applyLut(currentLut->inputArrayRGB, previousLut->function, previousLut->valueEffect);
-		}
 	}
 	return NULL;
-}
+}*/
 

@@ -51,6 +51,16 @@ void freeImage(Image* img);
 //Ajoute ou modifie le nom d'une struct Image
 bool imgAddName(Image* img, const char name[]);
 
+/**
+ * Copie l'image passée en paramètre.
+ * Copie exclusivement :
+ * -tableau de pixels
+ * -dimensions
+ * -valeur maximale
+ * -format
+ */
+Image* copyImage(Image* source);
+
 bool histoRGB (Image* img, int** hR,  int** hG,  int** hB);
 
 bool histo (Image* img,int** h);

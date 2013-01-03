@@ -1,6 +1,7 @@
 #include "review.h"
 #include "layersManager.h"
 #include "list.h"
+#include "ihm.h"//Pour displayCurrentLayer voir fonction undo
 
 //Variable globale représentant l'historique
 List* review = NULL;

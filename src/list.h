@@ -68,8 +68,8 @@ Cell* createCell(void* userData);
 List* createEmptyList(LIST_TYPE type);
 /**
  * Créé une liste de Cell ayant pour premier élément
- * une Cell contenant headUserData. Place le curseur en tête 
- * de liste (à NULL, cf NOTE GENERALE).
+ * une Cell contenant headUserData. Place le curseur sur 
+ * la première donnée de la liste.
  * @param headUserData le premier élément de la liste créée.
  */
 List* createList(LIST_TYPE type, void* headUserData);

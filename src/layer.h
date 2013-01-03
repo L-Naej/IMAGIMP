@@ -14,6 +14,9 @@
  * au premier LUT de la liste. Ainsi chaque lut prend en entrée
  * la sortie du lut précédent, et la chaîne démarre par le LUT
  * neutre.
+ * L'image finale est une nouvelle image de même dimensions que 
+ * l'image source, et représentant le résultat de l'application
+ * des effets sur l'image source.
  */
 
 
@@ -26,6 +29,7 @@ typedef enum layer_operation{
 typedef struct layer{
 	int id;
 	Image* imgSource;
+	Image* imgFinale;
 	double opacity;
 	LAYER_OP operation;
 	List* lutList;
