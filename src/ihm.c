@@ -44,10 +44,16 @@ Layer* parseCmdLine(int argc, char** argv){
 	}
 	
 	Layer* firstLay = createLayer(img, 1.0, SUM);//2 derniers params sans importance
+
 	
 	if(firstLay == NULL){
 		freeImage(img);
 		return NULL;
+	}
+	
+	//Enregistrement du chargement de l'image dans l'historique
+	if( !recordImgOperation(firstLay->imgSource, IM1)){
+				fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
 	}
 	
 	//Si pas de code LUT
@@ -57,11 +63,17 @@ Layer* parseCmdLine(int argc, char** argv){
 	
 	//On se positionne sur le lut neutre
 	currentLut = (Lut*) goToBottomCell(firstLay->lutList)->userData;
+	//On parcourt les arguments et on ajoute les lut correspondants
 	while(index < argc){
 		index = findNextLut(argc, argv, index, &currentLut, currentLut->channels, img->maxValue);
 		
+		//Ajout du lut à la liste des lut du premier calque
 		if(! addLut(firstLay, currentLut) ) {
 			fprintf(stderr, "Impossible de charger le LUT demandé.\n");
+		}
+		//Enregistrement de l'opération dans l'historique
+		if( !recordLutOperation(firstLay->lutList, firstLay, currentLut, LUT1) ){
+			fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");
 		}
 	}
 	
@@ -142,7 +154,7 @@ int findNextLut(int argc, char** argv, int index, Lut** currentLut, Channels* in
 void displayCurrentLayer(List* layerList){
 	if(layerList == NULL || layerList->type != LAYER)
 		return;
-	displayImage(((Layer*)currentData(layerList))->imgSource);	
+	displayImage(currentLayer(layerList)->imgFinale);	
 }
 
 void displayImage(const Image* img){
@@ -175,6 +187,8 @@ void printState(){
 	printf("Opération : ");
 	if(lay->operation == SUM) printf("Somme\n");
 	else printf("Multiplication\n");
+	
+	if(isListEmpty(lay->lutList)) return;
 	
 	printf("Effets appliqués : \n");
 	//On sauvegarde l'état de la liste des Lut
@@ -390,6 +404,76 @@ void userSaveFinalImage(List* layerList){
 	
 }
 
+bool userAddLut(List* layerList){
+	if(layerList == NULL) return false;
+	
+	char choice[2], value[4];
+	char numChoice = 0, numValue = 0;
+	Layer* lay = currentLayer(layerList);
+	Lut* inputLut = (Lut*) goToBottomCell(lay->lutList)->userData;
+	Lut* newLut = NULL;
+	
+	LUT_FUNCTION lF = NEUTRAL;
+	
+	puts("Effet à ajouter au calque courant :");
+	printf("%d.Invert\n", INVERT);
+	printf("%d.Augmenter luminosité\n", ADDLUM);
+	printf("%d.Diminuer luminosité\n", DIMLUM);
+	printf("%d.Augmenter le contraste\n", ADDCON);
+	printf("%d.Diminuer le constraste\n", DIMCON);
+	printf("%d.Effet sépia\n", SEPIA);
+	printf("Entrez le numéro correspondant : ");
+	readStdin(choice, 2);
+	
+	numChoice = atoi(choice);
+	
+	lF = numChoice;
+	
+	//Si une valeur doit être demandée
+	if(lF != INVERT && lF != SEPIA){
+		printf("Valeur de l'effet : ");
+		readStdin(value, 4);
+		numValue = atoi(value);
+	}
+	
+	//Création du Lut
+	newLut = createLut(inputLut->channels, lF, numValue, lay->imgSource->maxValue);
+	if(newLut == NULL){
+		printf("Impossible de créer le nouvel effet (erreur mémoire).\n");
+		return false;
+	}
+	
+	if(addLut(lay, newLut)){
+		if( !recordLutOperation(lay->lutList, lay, newLut, LUT1) ){
+			fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");
+		}
+		return true;
+	}
+	return false;
+}
+
+bool userDelCurrentLut(List* layerList){
+	if(layerList == NULL) return false;
+	
+	Layer* lay = currentLayer(layerList);
+	
+	//Cette fonction se charge de recalculer l'image finale
+	Lut* lutToDelete = delLastLut(lay);
+	
+	if(lutToDelete == NULL){
+		printf("\nAucun effet à supprimer sur le calque courant !\n");
+		return false;
+	}
+	
+	//Il faut sauvegarder le lut avant de le supprimer
+	if( !recordLutOperation(lay->lutList, lay,lutToDelete, LUT3) ){
+		fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");
+	}
+	
+	freeLut(lutToDelete);
+	return true;
+}
+
 //A FINIR
 void keyboardListener(unsigned char c, int x, int y){
 	//Définie dans imagimp.c
@@ -460,7 +544,7 @@ void keyboardListener(unsigned char c, int x, int y){
 				
 			}
 			else
-				printf("Un seul calque est présent, vous ne pouvez pas le supprimer.\n");
+				printf("\n\t /!\\Un seul calque est présent, vous ne pouvez pas le supprimer./!\\\n");
 			printState();
 		break;
 		case 's':
@@ -474,6 +558,18 @@ void keyboardListener(unsigned char c, int x, int y){
 		break;
 		case 'u' :
 			undo();
+			printState();
+		break;
+		case 'l' :
+			//Historique géré dans la fonction
+			userAddLut(layerList);
+			displayCurrentLayer(layerList);
+			printState();
+		break;
+		case 'n':
+			userDelCurrentLut(layerList);
+			displayCurrentLayer(layerList);
+			printState();
 		break;
 		default : printf("Touche non reconnue.\n");
 		break;
@@ -495,14 +591,14 @@ void keyboardSpecialListener(int c, int x, int y){
 				nextLayer(layerList);
 				return;
 			}
-			displayImage(lay->imgSource);
+			displayCurrentLayer(layerList);
 			printState();
 		break;
 		case GLUT_KEY_RIGHT :
 			lay = nextLayer(layerList);
 			//Si on était sur le dernier layer, lay == NULL
 			if(lay == NULL) return;
-			displayImage(lay->imgSource);
+			displayCurrentLayer(layerList);
 			printState();
 		break;
 		default : printf("Touche non reconnue.\n");
@@ -535,6 +631,8 @@ void displayCommands(){
 	puts("s: sauvegarder l'image finale");
 	puts("h: afficher l'historique");
 	puts("u: annuler la dernière opération");
+	puts("l: ajouter un effet au calque courant");
+	puts("n: supprimer l'effet courant (le dernier de la liste du calque courant");
 }
 
 

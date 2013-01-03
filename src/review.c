@@ -43,10 +43,13 @@ Operation* popOperation(){
 
 void undo(){
 	Operation* lastOp = NULL;
+	Lut* lt = NULL;//Lut à restaurer
+	Lut* ltIn = NULL;//Input du lut à restaurer
 	
 	lastOp = popOperation();
 	if(lastOp == NULL) return;
 	
+	printf("\n\n/!\\ Annulation /!\\\n\t");
 	switch(lastOp->name){
 		//On ne peut pas annuler IM1
 		case IM1 :
@@ -78,6 +81,22 @@ void undo(){
 			//On remet l'opération dans l'historique
 			pushOperation(lastOp);
 			printf("Annulation de la suppression d'un calque impossible.\n");
+		break;
+		case LUT1:
+			delLastLut(lastOp->type.savedLut->owner);
+			printf("Le dernier effet ajouté à été supprimé.\n");
+		break;
+		case LUT3:
+			//On régénère le lut supprimé
+			ltIn = (Lut*) goToBottomCell(lastOp->list)->userData;
+			lt = createLut(ltIn->channels, lastOp->type.savedLut->function, lastOp->type.savedLut->functionValue, lastOp->type.savedLut->maxValue);
+			if(lt == NULL){
+				fprintf(stderr, "\nErreur : Impossible d'annuler la suppression de l'effet.\n");
+				break;
+			}
+			//On le rajoute à sa liste
+			addLut(lastOp->type.savedLut->owner, lt);
+			printf("La suppression du Lut a été annulée.\n");
 		break;
 		default : printf("Dernière opération à annuler inconnue.\n");
 		break;
@@ -118,7 +137,11 @@ bool recordLayerOperation(List* layerList, Layer* lay, OperationName opName){
 	type.savedLayer = sL;
 	
 	Operation* op = createOperation(opName, type, layerList);
-	
+	if(op == NULL){
+		fprintf(stderr, "Impossible d'enregistrer l'opération dans l'historique.\n");
+		free(sL);
+		return false;		
+	}
 	pushOperation(op);
 	return true;
 }
@@ -130,6 +153,38 @@ bool recordImgOperation(Image* img, OperationName opName){
 	type.img = img;
 	
 	Operation* op = createOperation(opName, type, NULL);
+	if(op == NULL){
+		fprintf(stderr, "Impossible d'enregistrer l'opération dans l'historique.\n");
+		return false;		
+	}
+	
+	pushOperation(op);
+	return true;
+}
+
+bool recordLutOperation(List* lutList, Layer* owner, Lut* lt, OperationName opName){
+	if(lutList == NULL || lt == NULL || owner == NULL || (opName != LUT1 && opName != LUT3) )
+		return false;
+		
+	SavedLut* sL = (SavedLut*) calloc(1, sizeof(SavedLut));
+	if(sL == NULL){
+		fprintf(stderr, "Impossible d'enregistrer l'opération dans l'historique.\n");
+		return false;
+	}
+	sL->owner = owner;
+	sL->function = lt->function;
+	sL->functionValue = lt->valueEffect;
+	sL->maxValue = lt->maxValue;
+	
+	ReviewType type;
+	type.savedLut = sL;
+	
+	Operation* op = createOperation(opName, type, lutList);
+	if(op == NULL){
+		fprintf(stderr, "Impossible d'enregistrer l'opération dans l'historique.\n");
+		free(sL);
+		return false;		
+	}
 	
 	pushOperation(op);
 	return true;
@@ -146,76 +201,84 @@ Operation* createOperation(OperationName name, ReviewType type, List* list){
 	return op;	
 }
 
+//Fonction interne
+void printSavedLut(SavedLut* sL){
+	switch(sL->function){
+	case INVERT : 
+		printf("Inversion\n");
+	break;
+	case ADDLUM : 
+		printf("Ajout de luminosité : %d\n", sL->functionValue);
+	break;
+	case DIMLUM : 
+		printf("Diminution de luminosité : %d\n", sL->functionValue);
+	break;
+
+	case ADDCON : 
+		printf("Augmentation du contraste : %d\n", sL->functionValue);
+	break;
+	case DIMCON : 
+		printf("Diminution du contraste : %d\n", sL->functionValue);
+	break;
+	//Ne devrait pas arriver
+	default : fprintf(stderr,"Fonction LUT inconnue.\n");
+	break;
+	}	
+}
+
+//Fonction interne
+void printOperation(Operation* curOp){
+	if(curOp == NULL) return;
+	printf("\n\tOperation : ");
+	switch(curOp->name){
+		case IM1 : 
+			printf("Chargement de l'image de base.\n");
+			printf("\tImage chargée : %s\n", curOp->type.img->name);
+		break;
+		case CAL1 : 
+			printf("Ajout d'un calque.\n");
+			printf("\tCalque ajouté en position %d\n", curOp->type.savedLayer->position);
+		break;
+		case CAL3 : 
+			printf("Changement d'opacité d'un calque.\n");
+			printf("\tCalque n°%d\n", curOp->type.savedLayer->position);
+			printf("\tAncienne opacité : %lf\n", curOp->type.savedLayer->oldOpacity);
+		break;
+		case CAL4 : 
+			printf("\tCAL4");
+			printf("\tChangement d'opération d'un calque.\n");
+			printf("\tCalque n°%d\n", curOp->type.savedLayer->position);
+			printf("\tAncienne opération : ");
+			if(curOp->type.savedLayer->oldOperation == SUM) printf("Somme\n");
+			else printf("Multiplication\n");
+		break;
+		case CAL5 : 
+			printf("Suppression du calque n°%d\n", curOp->type.savedLayer->position);
+			
+		break;
+		case LUT1 :
+			printf("Ajout d'un effet\n\t");
+			printSavedLut(curOp->type.savedLut);
+		break;
+		case LUT3 :
+			printf("Suppression d'un effet\n\t");
+			printSavedLut(curOp->type.savedLut);
+		break;
+		default : printf("Opération inconnue.\n");
+		break;
+	}
+}
+
 void displayReview(){
 	goToBottomCell(review);
 	Operation* curOp = NULL;
 	
 	printf("\n\n----------HISTORIQUE DES OPERATIONS (ordre chronologique inverse)----------\n");
 	curOp = (Operation*) currentData(review);
-	printf("\n\tOperation : ");
-		switch(curOp->name){
-			case IM1 : 
-				printf("Chargement de l'image de base.\n");
-				printf("Image chargée : %s\n", curOp->type.img->name);
-				printf("\n///////////////////////////////////////\n");
-			break;
-			case CAL1 : 
-				printf("Ajout d'un calque.\n");
-				printf("Calque ajouté en position %d\n", curOp->type.savedLayer->position);
-			break;
-			case CAL3 : 
-				printf("Changement d'opacité d'un calque.\n");
-				printf("Calque n°%d\n", curOp->type.savedLayer->position);
-				printf("Ancienne opacité : %lf\n", curOp->type.savedLayer->oldOpacity);
-			break;
-			case CAL4 : 
-				printf("CAL4");
-				printf("Changement d'opération d'un calque.\n");
-				printf("Calque n°%d\n", curOp->type.savedLayer->position);
-				printf("Ancienne opération : ");
-				if(curOp->type.savedLayer->oldOperation == SUM) printf("Somme\n");
-				else printf("Multiplication\n");
-			break;
-			case CAL5 : 
-				printf("Suppression du calque n°%d", curOp->type.savedLayer->position);
-				printf("\n///////////////////////////////////////\n");
-			break;
-			default : printf("Opération inconnue.\n");
-		}
+	printOperation(curOp);
 			
 	while( ( curOp = (Operation*) previousData(review) ) != NULL){
-		printf("\n\tOperation : ");
-		switch(curOp->name){
-			case IM1 : 
-				printf("Chargement de l'image de base.\n");
-				printf("Image chargée : %s\n", curOp->type.img->name);
-				printf("\n///////////////////////////////////////\n");
-			break;
-			case CAL1 : 
-				printf("Ajout d'un calque.\n");
-				printf("Calque ajouté en position %d\n", curOp->type.savedLayer->position);
-			break;
-			case CAL3 : 
-				printf("Changement d'opacité d'un calque.\n");
-				printf("Calque n°%d\n", curOp->type.savedLayer->position);
-				printf("Ancienne opacité : %lf\n", curOp->type.savedLayer->oldOpacity);
-			break;
-			case CAL4 : 
-				printf("CAL4");
-				printf("Changement d'opération d'un calque.\n");
-				printf("Calque n°%d\n", curOp->type.savedLayer->position);
-				printf("Ancienne opération : ");
-				if(curOp->type.savedLayer->oldOperation == SUM) printf("Somme\n");
-				else printf("Multiplication\n");
-			break;
-			case CAL5 : 
-				printf("Suppression du calque n°%d", curOp->type.savedLayer->position);
-				printf("\n///////////////////////////////////////\n");
-			break;
-			default : printf("Opération inconnue.\n");
-			break;
-		}
-		
+		printOperation(curOp);
 	}
 	
 		
@@ -229,6 +292,10 @@ void freeOperation(Operation* op){
 		case CAL4 :
 		case CAL5 :
 			free(op->type.savedLayer);
+		break;
+		case LUT1:
+		case LUT3:
+			free(op->type.savedLut);
 		break;
 	}
 	free(op);

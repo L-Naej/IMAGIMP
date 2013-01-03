@@ -41,6 +41,7 @@ Layer* createLayer(Image* source, double opa, LAYER_OP operation){
 	l->imgSource = source;
 	l->opacity = opa;
 	l->operation = operation;
+	l->lutList = NULL;
 	
 	//Allocation de la mémoire pour l'image finale (effets appliqués)
 	l->imgFinale = NULL;
@@ -64,6 +65,7 @@ Layer* createEmptyLayer(int w, int h){
 	if(l == NULL) return NULL;
 	
 	l->id = ++cntLayerId;
+	l->lutList = NULL;
 	l->imgSource = NULL;
 	l->imgFinale = NULL;
 	l->imgSource = createEmptyImg(w,h, DEFAULT_MAX_VAL);
@@ -128,8 +130,25 @@ bool addLut(Layer* lay, Lut* lt){
 	insertBottomCell(lay->lutList, lt);
 	goToBottomCell(lay->lutList);
 	//On applique le LUT au calque
-	applyLutToImg(lay->imgFinale, (Lut*)currentData(lay->lutList));
+	applyLutToImg(lay->imgSource, lay->imgFinale, (Lut*)currentData(lay->lutList));
 	return true;
+}
+
+Lut* delLastLut(Layer* lay){
+	if(lay == NULL) return NULL;
+	Lut* deletedLut = NULL;
+	
+	Cell* last = goToBottomCell(lay->lutList);
+	//S'il n'y a plus de lut à supprimer (le neutral doit rester)
+	if( ((Lut*)last->userData)->function == NEUTRAL ) return NULL;
+	
+	deletedLut =  delBottomCell(lay->lutList);
+	
+	//On régénère l'image finale
+	goToBottomCell(lay->lutList);
+	applyLutToImg(lay->imgSource, lay->imgFinale, (Lut*)currentData(lay->lutList));
+	
+	return deletedLut;
 }
 
 void setLayerOpacity(Layer* lay, double newOpa){

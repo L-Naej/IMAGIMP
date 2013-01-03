@@ -72,6 +72,13 @@ void dumpLayer(Layer* l);
 bool addLut(Layer* lay, Lut* lt);
 
 /**
+ * Supprime de la liste le dernier lut ajouté sauf s'il
+ * s'agit du lut neutral. Renvoie le lut supprimé de la liste.
+ * (il n'est pas supprimé de la mémoire)
+ */
+Lut* delLastLut(Layer* lay);
+
+/**
  * Modifie l'opacité du layer lay en lui affectant la
  * valeur newOpa.
  */

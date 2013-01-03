@@ -1,16 +1,13 @@
 BUG LIST
 ----------------------------
+Quand l'inversion est en début de liste des lut et que d'autres lut suivent, elle n'est pas prise en compte...
 
 TO DO LIST
 -------------------------
 -terminer les lut
+
 -Créer fonction freeLut et l'appeler dans freeCellInList et freeCellByPosition
 
 -Finir de programmer l'interface 
 
--Pour les listes :
-	*Cacher autant que possible l'implémentation des listes, c'est-à-dire
-	 ne permettre de les manipuler qu'au travers des fonctions de list.h
-	 et définir les structures dans le .c. (accès au champs impossibles
-	 à l'extérieur de ce fichier). Pas dis que ce soit forcément une bonne idée,
-	 à voir.
+-Commenter review.h lut.h lutfunction.h

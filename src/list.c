@@ -368,6 +368,18 @@ Cell* getCellByPosition(List* list, int position){
 	return NULL;
 }
 
+void* delBottomCell(List* list){
+	if(list == NULL) return NULL;
+	
+	return delCellInList(list, list->bottom);	
+}
+
+void freeBottomCell(List* list){
+	if(list == NULL) return NULL;
+	
+	freeCellInList(list, list->bottom);
+}
+
 void* delCellByPosition(List* list, int position){
 	if(list == NULL || position < 0 || position > list->size)
 		return NULL;

@@ -205,6 +205,20 @@ bool goToPosition(List* list, int position);
  */
 Cell* getCellByPosition(List* list, int position);
 
+
+/**
+ * Enlève la dernière cellule de la liste
+ * et retourne le userData qu'elle contenait
+ */
+void* delBottomCell(List* list);
+
+/**
+ * Enlève la dernière cellule de la liste
+ * et supprime de la mémoire le userData qu'elle
+ * contenait.
+ */
+void freeBottomCell(List* list);
+
 /**
  * Enlève le Cell de la liste étant à la position
  * demandée (le premier Cell est à la position 1).

@@ -11,19 +11,23 @@ Channels* allocChannels(int size){
 	
 	chan->chan1 = (unsigned char*) calloc(size, sizeof(unsigned char));	
 	if(chan->chan1 == NULL) return NULL;
-	for(i = 0; i < size; i++){
-		chan->chan1[i] = i;
-	}
 	
 	chan->chan2 = (unsigned char*) calloc(size, sizeof(unsigned char));	
-	if(chan->chan2 == NULL) return NULL;
-	for(i = 0; i < size; i++){
-		chan->chan2[i] = i;
+	if(chan->chan2 == NULL){
+		free(chan->chan1);
+		return NULL;
 	}
 	
 	chan->chan3 = (unsigned char*) calloc(size, sizeof(unsigned char));	
-	if(chan->chan3 == NULL) return NULL;
+	if(chan->chan3 == NULL){
+		free(chan->chan1);
+		free(chan->chan2);
+		return NULL;
+	}
+	
 	for(i = 0; i < size; i++){
+		chan->chan1[i] = i;
+		chan->chan2[i] = i;
 		chan->chan3[i] = i;
 	}
 	
@@ -184,25 +188,15 @@ void freeLut(Lut* lt){
 	free(lt);
 }
  
-void applyLutToImg(Image* img,Lut* lut){
+void applyLutToImg(Image* imgSource, Image* imgFinale, Lut* lut){
 	int i;
-	if (img==NULL || lut==NULL ) return;
-	/*
-	if (lut->function==SEPIA){
-		for(i=0; i<(img->width)*(img->height)*3; i+=3){
-			img->arrayRGB[i]=(unsigned char)(lut->outputArrayR[img->arrayRGB[i]]);
-			img->arrayRGB[i+1]=(unsigned char)(lut->outputArrayG[img->arrayRGB[i+1]]);
-			img->arrayRGB[i+2]=(unsigned char)(lut->outputArrayB[img->arrayRGB[i+2]]);
-		}
+	if (imgSource==NULL || imgFinale == NULL || lut==NULL ) return;
+
+	for(i=0; i<(imgSource->width)*(imgSource->height)*3; i+=3){
+		imgFinale->arrayRGB[i] = lut->channels->chan1[imgSource->arrayRGB[i]];
+		imgFinale->arrayRGB[i+1] = lut->channels->chan2[imgSource->arrayRGB[i+1]];
+		imgFinale->arrayRGB[i+2] = lut->channels->chan3[imgSource->arrayRGB[i+2]];
 	}
-	*/
-	//else{
-		for(i=0; i<(img->width)*(img->height)*3; i+=3){
-			img->arrayRGB[i] = lut->channels->chan1[img->arrayRGB[i]];
-			img->arrayRGB[i+1] = lut->channels->chan2[img->arrayRGB[i+1]];
-			img->arrayRGB[i+2] = lut->channels->chan3[img->arrayRGB[i+2]];
-		}
-	//}
 }
 
 void dumpLut(Lut* lt){

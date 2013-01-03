@@ -24,12 +24,34 @@ typedef struct saved_layer{
 	int position;
 } SavedLayer;
 
+/**
+ * Informations sur le lut utilisées
+ * pour le régénérer si on veut annuler
+ * sa suppression. (sauvegarder tout le lut serait trop lourd)
+ * 
+ * Note : on supprime forcément le lut courant, donc
+ * pour le régénérer, son input est l'output du lut actuel
+ * inutile de le sauvegarder.
+ * 
+ */
+typedef struct saved_lut{
+	Layer* owner;
+	LUT_FUNCTION function;
+	int functionValue;
+	int maxValue;
+}SavedLut;
+
 typedef union core_review{
 	SavedLayer* savedLayer;
-	Lut* lut;
+	SavedLut* savedLut;
 	Image* img;
 }ReviewType;
 
+/* /!\Pourquoi sauvegarder la lutList ? => si l'utilisateur supprime un lut,
+ * change de calque, puis annule => le changement de calque n'est pas répertorié dans
+ * l'historique ainsi le lut se rajouterait au calque courant, ERREUR !
+ * On garde donc une référence vers la liste de lut auquel ce dernier appartient
+ */
 typedef struct operation{
 	OperationName name;
 	ReviewType type;
@@ -44,6 +66,7 @@ void undo();
 
 bool recordLayerOperation(List* layerList, Layer* lay, OperationName opName);
 bool recordImgOperation(Image* img, OperationName opName);
+bool recordLutOperation(List* lutList, Layer* owner, Lut* lt, OperationName opName);
 
 void displayReview();
 

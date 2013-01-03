@@ -19,6 +19,8 @@
  * s: sauvegarde l'image finale
  * h: afficher l'historique
  * u: annuler la dernière opération
+ * l: ajouter un effet au calque courant
+ * n: supprimer l'effet courant (le dernier de la liste du calque courant
  */
 
 /**
@@ -98,6 +100,11 @@ bool userDelCurrentLayer(List* layerList);
  * la succession des calques et de leurs LUTs.
  */
 void userSaveFinalImage(List* layerList);
+
+/**
+ * Ajoute un lut au calque courant.
+ */
+bool userAddLut(List* layerList);
 
 /**
  * Fonction de callback appelée lors de l'appui

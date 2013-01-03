@@ -2,13 +2,13 @@
 #define LUT_H
 #include "image.h"
 typedef enum lut_function{
-	INVERT,
-	ADDLUM,
-	DIMLUM,
-	ADDCON,
-	DIMCON,
-	SEPIA,
-	NEUTRAL
+	INVERT = 1,
+	ADDLUM = 2,
+	DIMLUM = 3,
+	ADDCON = 4,
+	DIMCON = 5,
+	SEPIA = 6,
+	NEUTRAL = 0
 	} LUT_FUNCTION;
 
 typedef struct {
@@ -42,7 +42,7 @@ Lut* createLut(Channels* input, LUT_FUNCTION lF, int val, int maxVal);
 
 void freeLut(Lut* lt);
 
-void applyLutToImg(Image* img,Lut* lut);
+void applyLutToImg(Image* imgSource, Image* imgFinale, Lut* lut);
 
 void dumpLut(Lut* lt);
 

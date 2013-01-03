@@ -13,9 +13,6 @@ List* initLayersList(int argc, char** argv){
 	
 	if(firstLay != NULL){
 		layerList = createList(LAYER, firstLay);
-		if( !recordImgOperation(firstLay->imgSource, IM1)){
-				fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
-		}
 	}
 	else{
 		fprintf(stderr, "Impossible d'initialiser la liste des calques, le programme va quitter.\n");
@@ -116,9 +113,9 @@ bool generateFinalImage(List* layerList, Image** finalImage){
 	
 	//Alloue l'espace pour stocker l'image finale
 	int width, height, maxValue;
-	width = currentLayer(layerList)->imgSource->width;
-	height = currentLayer(layerList)->imgSource->height;
-	maxValue = currentLayer(layerList)->imgSource->maxValue;
+	width = currentLayer(layerList)->imgFinale->width;
+	height = currentLayer(layerList)->imgFinale->height;
+	maxValue = currentLayer(layerList)->imgFinale->maxValue;
 	*finalImage = createEmptyImg(width, height, maxValue);
 	
 	//On sauvegarde l'emplacement actuel
@@ -164,7 +161,7 @@ void genFinalImageRecur(List* list, Layer* lay, Image* finalImage){
 		
 		if(lay->operation == SUM){
 			for(i = 0; i < nPix*NB_COL_COMP; ++i){
-				tmp = finalImage->arrayRGB[i] + (short)(ceil(lay->opacity * lay->imgSource->arrayRGB[i]));
+				tmp = finalImage->arrayRGB[i] + (short)(ceil(lay->opacity * lay->imgFinale->arrayRGB[i]));
 				if(tmp > finalImage->maxValue) tmp = finalImage->maxValue;
 				else if(tmp < 0) tmp = 0;
 				finalImage->arrayRGB[i] = tmp;
@@ -172,7 +169,7 @@ void genFinalImageRecur(List* list, Layer* lay, Image* finalImage){
 		}
 		else if(lay->operation == MULTIPLICATION){
 			for(i = 0; i < nPix*NB_COL_COMP; ++i){
-				tmp = (short)(ceil((1-lay->opacity)*finalImage->arrayRGB[i])) + (short)(ceil(lay->opacity * lay->imgSource->arrayRGB[i]));
+				tmp = (short)(ceil((1-lay->opacity)*finalImage->arrayRGB[i])) + (short)(ceil(lay->opacity * lay->imgFinale->arrayRGB[i]));
 				if(tmp > finalImage->maxValue) tmp = finalImage->maxValue;
 				else if(tmp < 0) tmp = 0;
 				finalImage->arrayRGB[i] = tmp;
@@ -182,7 +179,7 @@ void genFinalImageRecur(List* list, Layer* lay, Image* finalImage){
 	//Condition de fin de la récursivité : on est sur le premier layer
 	else{
 		for(i = 0; i < nPix*NB_COL_COMP; ++i){
-			finalImage->arrayRGB[i] = lay->imgSource->arrayRGB[i];
+			finalImage->arrayRGB[i] = lay->imgFinale->arrayRGB[i];
 		}
 	}
 }
