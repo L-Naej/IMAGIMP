@@ -69,6 +69,7 @@ bool recordImgOperation(Image* img, OperationName opName);
 bool recordLutOperation(List* lutList, Layer* owner, Lut* lt, OperationName opName);
 
 void displayReview();
+void printOperation(Operation* curOp);
 
 Operation* createOperation(OperationName name, ReviewType type, List* list);
 

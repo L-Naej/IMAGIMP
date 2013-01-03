@@ -183,7 +183,7 @@ void printState(){
 	if(lay->operation == SUM) printf("Somme\n");
 	else printf("Multiplication\n");
 	
-	if(isListEmpty(lay->lutList)) return;
+	if(lay->lutList->size == 1) return;
 	
 	printf("Effets appliqués : \n");
 	//On sauvegarde l'état de la liste des Lut
@@ -562,7 +562,9 @@ void keyboardListener(unsigned char c, int x, int y){
 			printState();
 		break;
 		case 'n':
-			userDelCurrentLut(layerList);
+			if(userDelCurrentLut(layerList))
+				printf("\tDernier effet supprimé.\n");
+			
 			displayCurrentLayer(layerList);
 			printState();
 		break;

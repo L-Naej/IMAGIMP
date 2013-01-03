@@ -542,8 +542,10 @@ void dumpList(List* list){
 			break;
 			case LUT: dumpLut((Lut*)list->cursor->userData);
 			break;
+			case REVIEW : printOperation((Operation*)list->cursor->userData);
+			break;
 			case UNKNOWN : printf("de type inconnu\n");
-			 break;
+			break;
 		}
 		if(list->cursor->next != NULL)
 			printf("Next Cell : %p\n", list->cursor->next);

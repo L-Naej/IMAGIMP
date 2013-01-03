@@ -56,6 +56,7 @@ void undo(){
 			//On remet l'opération dans l'historique
 			pushOperation(lastOp);
 			printf("Annulation du chargement de la première image impossible.\n");
+			return;//Impératif sinon l'opération est supprimée !!!
 		break;
 		case CAL1 : 
 			//A faire tout de suite sinon opengl risque 
@@ -81,6 +82,7 @@ void undo(){
 			//On remet l'opération dans l'historique
 			pushOperation(lastOp);
 			printf("Annulation de la suppression d'un calque impossible.\n");
+			return;//Impératif sinon l'opération est supprimée !!!
 		break;
 		case LUT1:
 			delLastLut(lastOp->type.savedLut->owner);
@@ -92,7 +94,7 @@ void undo(){
 			lt = createLut(ltIn->channels, lastOp->type.savedLut->function, lastOp->type.savedLut->functionValue, lastOp->type.savedLut->maxValue);
 			if(lt == NULL){
 				fprintf(stderr, "\nErreur : Impossible d'annuler la suppression de l'effet.\n");
-				break;
+				return;//Impératif sinon l'opération est supprimée !!!
 			}
 			//On le rajoute à sa liste
 			addLut(lastOp->type.savedLut->owner, lt);
@@ -223,10 +225,14 @@ void printSavedLut(SavedLut* sL){
 	//Ne devrait pas arriver
 	default : fprintf(stderr,"Fonction LUT inconnue.\n");
 	break;
-	}	
+	}
+	
+	printf("\tSur le calque d'id n°%d\n", sL->owner->id);
+	if(sL->owner->imgSource->name != NULL)
+		printf("\tD'image source %s\n", sL->owner->imgSource->name);
 }
 
-//Fonction interne
+
 void printOperation(Operation* curOp){
 	if(curOp == NULL) return;
 	printf("\n\tOperation : ");
@@ -238,6 +244,10 @@ void printOperation(Operation* curOp){
 		case CAL1 : 
 			printf("Ajout d'un calque.\n");
 			printf("\tCalque ajouté en position %d\n", curOp->type.savedLayer->position);
+			if(curOp->type.savedLayer->ptrLay->imgSource->name != NULL)
+				printf("\tD'image source : %s\n", curOp->type.savedLayer->ptrLay->imgSource->name);
+			else
+				printf("\tCalque vierge.\n");
 		break;
 		case CAL3 : 
 			printf("Changement d'opacité d'un calque.\n");
