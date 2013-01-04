@@ -21,7 +21,6 @@ Image* loadImage(char* fileName){
 	Image* img = NULL;
 	
 	char currentTxt[MAX_LINE_LENGTH];
-	unsigned char currentPix;
 	
 	long position = 0;
 	short ctr = 0;
@@ -64,7 +63,9 @@ Image* loadImage(char* fileName){
 		switch(ctr){
 			case 0 : img->format = (short) atoi((currentTxt+1));
 			break;
-			case 1 : detectWH(currentTxt, &img->width, &img->height);
+			case 1 : 
+				detectWH(currentTxt, &img->width, &img->height);
+				//sscanf(currentTxt, "%d %d", &img->width, &img->height);
 			break;
 			case 2 : img->maxValue = atoi(currentTxt);
 			break;
@@ -92,6 +93,7 @@ Image* loadImage(char* fileName){
 	if(img->arrayRGB == NULL){
 		free(img->comments);
 		free(img);
+		return NULL;
 	}
 	
 	
@@ -99,13 +101,10 @@ Image* loadImage(char* fileName){
 	imgFile = fopen(fileName, "rb");
 	fseek(imgFile,position, SEEK_SET);
 	
-	ctr = 0;
-		 
-	for(i =0; i < nPix*NB_COL_COMP; i++){		
-		readNUchar(&currentPix, 1, imgFile);
-		img->arrayRGB[i] = currentPix;
-	}
+	//readNUchar(img->arrayRGB, nPix*NB_COL_COMP, imgFile); //parfois bug...
+	fread(img->arrayRGB, nPix*NB_COL_COMP, sizeof(unsigned char),imgFile);
 	
+
 	//On stocke l'image inversée en mémoire
 	//pour qu'elle soit toute prête à être affichée
 	//par OpenGL

@@ -9,7 +9,7 @@
 #define NB_COL_COMP 3
 #define F_NAME_PER_LINE 3
 
-//Lit n unsigned char d'un fichier
+//Lit n unsigned char d'un fichier, parfois bloque...
 bool readNUchar(unsigned char* t, int n, FILE* f){
 	int i, readed = 0;
 	if(f==NULL)return 0;
@@ -37,7 +37,7 @@ bool writeNUchar(const unsigned char* t, int n, FILE* f){
 void invertPPMArray(unsigned char array[], long int width, long int height){
       long i = 0, j= 0;
       long int nPix = width*height;
-     	unsigned char* invertedArray = (unsigned char*) malloc(nPix*NB_COL_COMP*sizeof(unsigned char));
+     	unsigned char* invertedArray = (unsigned char*) calloc(nPix*NB_COL_COMP,sizeof(unsigned char));
       
       int k = 0;
       
@@ -46,8 +46,10 @@ void invertPPMArray(unsigned char array[], long int width, long int height){
 			invertedArray[k++] = array[i+j];
 		}
 	}
-	
+
 	memcpy(array, invertedArray, nPix*NB_COL_COMP*sizeof(unsigned char));
+	
+	free(invertedArray);
 }
 
 //credit: 
