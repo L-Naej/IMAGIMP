@@ -12,7 +12,7 @@
  * demandé en ligne de commande pour le premier Layer.
  * Voir sujet du projet section 2.3.4 pour plus d'infos.
  */
-int findNextLut(int argc, char** argv, int index, Lut** lt, Channels* input,  int maxValue);
+int findNextLut(int argc, char** argv, int index, LUT_FUNCTION* function, int* functionValue, Channels* input,  int maxValue, bool* parseError);
 
 //Pour pouvoir libérer la mémoire on doit conserver le 
 //pointeur entre deux appels de cette fonction
@@ -36,8 +36,10 @@ Layer* parseCmdLine(int argc, char** argv){
 	}
 	
 	Image* img = loadImage(argv[1]);
-	int index = 0;
+	int index = 0, functionValue = 0;
 	Lut* currentLut = NULL;
+	LUT_FUNCTION function = NEUTRAL;
+	bool parseError = false;
 	
 	if(img == NULL){
 		return NULL;
@@ -65,81 +67,93 @@ Layer* parseCmdLine(int argc, char** argv){
 	currentLut = (Lut*) goToBottomCell(firstLay->lutList)->userData;
 	//On parcourt les arguments et on ajoute les lut correspondants
 	while(index < argc){
-		index = findNextLut(argc, argv, index, &currentLut, currentLut->channels, img->maxValue);
+		index = findNextLut(argc, argv, index, &function, &functionValue, currentLut->channels, img->maxValue, &parseError);
+		
+		//Si ligne mal formatée on quitte avec message d'erreur
+		if(parseError){ 
+			fprintf(stderr, "Utilisation du programme : imagimp monimage.ppm [<code_lut>[_<param1>]*]*\n");
+			exit(-1);
+		}
 		
 		//Ajout du lut à la liste des lut du premier calque
-		if(! addLut(firstLay, currentLut) ) {
+		if(! addLut(firstLay, function, functionValue) ) {
 			fprintf(stderr, "Impossible de charger le LUT demandé.\n");
 		}
 		//Enregistrement de l'opération dans l'historique
-		if( !recordLutOperation(firstLay->lutList, firstLay, currentLut, LUT1) ){
-			fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");
+		else {
+			goToBottomCell(firstLay->lutList);//Sécurité
+			currentLut = (Lut*) currentData(firstLay->lutList);
+			if ( !recordLutOperation(firstLay->lutList, firstLay, currentLut, LUT1) )
+				fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");
 		}
+		
 	}
 	
 	return firstLay;
 }
 
-int findNextLut(int argc, char** argv, int index, Lut** currentLut, Channels* input, int maxValue){
-	LUT_FUNCTION ltFunc = NEUTRAL;
-	int lutFuncValue = 0;
-	
-	//Vaudra true si la ligne de commande est mal formatée
-	bool parseError = false;
+int findNextLut(int argc, char** argv, int index, LUT_FUNCTION* function, int* functionValue, Channels* input, int maxValue, bool* parseError){
 	
 	if(strcmp("ADDLUM", argv[index]) == 0){
-		ltFunc = ADDLUM;
+		*function = ADDLUM;
 		//S'il existe encore un argument et que c'est un nombre
 		//il s'agit de la valeur du lut
 		if(index < argc-1 && isdigit(argv[++index][0]) ){
-			lutFuncValue = atoi(argv[index]);
+			*functionValue = atoi(argv[index]);
 		}
 		//Sinon il y a une erreur (ADDLUM a besoin d'une valeur)
-		else parseError = true;
+		else{
+			*parseError = true;
+			fprintf(stderr, "ADDLUM nécessite un paramètre (nombre entier).\n");
+		}
+		
 	}
 	else if(strcmp("DIMLUM", argv[index]) == 0) {
-		ltFunc = DIMLUM;
+		*function = DIMLUM;
 		if(index < argc-1 && isdigit(argv[++index][0]) ){
-			lutFuncValue = atoi(argv[index]);
+			*functionValue = atoi(argv[index]);
 		}
 		//Sinon il y a une erreur (DIMLUM a besoin d'une valeur)
-		else parseError = true;
+		else{
+			*parseError = true;
+			fprintf(stderr, "DIMLUM nécessite un paramètre (nombre entier).\n");
+		}
 	}
 	else if(strcmp("ADDCON", argv[index]) == 0){
-		ltFunc = ADDCON;
+		*function = ADDCON;
 		if(index < argc-1 && isdigit(argv[++index][0]) ){
-			lutFuncValue = atoi(argv[index]);
+			*functionValue = atoi(argv[index]);
 		}
 		//Sinon il y a une erreur (ADDCON a besoin d'une valeur)
-		else parseError = true;
+		else{
+			*parseError = true;
+			fprintf(stderr, "ADDCON nécessite un paramètre (nombre entier).\n");
+		}
 	}
 	else if(strcmp("DIMCON", argv[index]) == 0){
-		ltFunc = DIMCON;
+		*function = DIMCON;
 		if(index < argc-1 && isdigit(argv[++index][0]) ){
-			lutFuncValue = atoi(argv[index]);
+			*functionValue = atoi(argv[index]);
 		}
 		//Sinon il y a une erreur (DIMCON a besoin d'une valeur)
-		else parseError = true;
+		else{
+			*parseError = true;
+			fprintf(stderr, "DIMCON nécessite un paramètre (nombre entier).\n");
+		}
 	}
 	else if(strcmp("INVERT", argv[index]) == 0){
-		ltFunc = INVERT;
+		*function = INVERT;
 	}
 	else if(strcmp("SEPIA", argv[index]) == 0){
-		ltFunc = SEPIA;
+		*function = SEPIA;
 	}
 	else{ 
 		fprintf(stderr,"Code lUT inconnu : %s.\n", argv[index]);
-		parseError = true;
+		*parseError = true;
 	}
 	
-	
-	
-	if(!parseError){
-		*currentLut = createLut(input, ltFunc, lutFuncValue, maxValue);
-	}
-	else{
-		*currentLut = NULL;
-		printf("Erreur dans la ligne de commande autour du mot n° %d\n", index);
+	if(*parseError){
+		printf("Erreur dans la ligne de commande autour du mot %s\n", argv[index-1]);
 	}
 	
 	index++;
@@ -405,8 +419,6 @@ bool userAddLut(List* layerList){
 	char choice[2], value[4];
 	char numChoice = 0, numValue = 0;
 	Layer* lay = currentLayer(layerList);
-	Lut* inputLut = (Lut*) goToBottomCell(lay->lutList)->userData;
-	Lut* newLut = NULL;
 	
 	LUT_FUNCTION lF = NEUTRAL;
 	
@@ -431,14 +443,11 @@ bool userAddLut(List* layerList){
 		numValue = atoi(value);
 	}
 	
-	//Création du Lut
-	newLut = createLut(inputLut->channels, lF, numValue, lay->imgSource->maxValue);
-	if(newLut == NULL){
-		printf("Impossible de créer le nouvel effet (erreur mémoire).\n");
-		return false;
-	}
-	
-	if(addLut(lay, newLut)){
+	//Création du Lut et ajout de ce lut dans la liste.
+	//Tout est géré par layer.c:addLut(...)
+	if(addLut(lay, lF, numValue)){
+		goToBottomCell(lay->lutList);//Sécurité
+		Lut* newLut = (Lut*) currentData(lay->lutList);
 		if( !recordLutOperation(lay->lutList, lay, newLut, LUT1) ){
 			fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");
 		}
@@ -553,6 +562,7 @@ void keyboardListener(unsigned char c, int x, int y){
 		break;
 		case 'u' :
 			undo();
+			displayCurrentLayer(layerList);
 			printState();
 		break;
 		case 'l' :
@@ -563,7 +573,7 @@ void keyboardListener(unsigned char c, int x, int y){
 		break;
 		case 'n':
 			if(userDelCurrentLut(layerList))
-				printf("\tDernier effet supprimé.\n");
+				printf("\n\t---->Dernier effet supprimé.\n");
 			
 			displayCurrentLayer(layerList);
 			printState();

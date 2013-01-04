@@ -65,11 +65,12 @@ void freeLayer(Layer* l);
 void dumpLayer(Layer* l);
 
 /**
- * Ajoute le lut lt au layer lay. Le lut lt est ajouté
+ * Créé le lut associé à la fonction "function" avec pour
+ * paramètre val et l'ajoute au layer lay. Le lut lt est ajouté
  * en fin de la liste des lut courants du layer lay.
  * Retourne vrai si l'ajout a réussi, faux sinon. 
  */
-bool addLut(Layer* lay, Lut* lt);
+bool addLut(Layer* lay, LUT_FUNCTION function, int functionValue);
 
 /**
  * Supprime de la liste le dernier lut ajouté sauf s'il
@@ -94,6 +95,6 @@ void setLayerOperation(Layer* lay, LAYER_OP newOp);
  * Génère l'image final après passage à travers
  * tous les LUT du layer.
  */
-Image* applyLuts(Layer* lay);
+void applyLuts(Layer* lay);
 
 #endif

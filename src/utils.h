@@ -61,4 +61,9 @@ unsigned char minInTab(unsigned char* tab, int size);
  */
 unsigned char maxInTab(unsigned char* tab, int size);
 
+/**
+ * Compare et renvoie le lpus petit
+ */
+int min(int, int);
+
 #endif

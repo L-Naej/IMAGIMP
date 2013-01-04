@@ -43,8 +43,6 @@ Operation* popOperation(){
 
 void undo(){
 	Operation* lastOp = NULL;
-	Lut* lt = NULL;//Lut à restaurer
-	Lut* ltIn = NULL;//Input du lut à restaurer
 	
 	lastOp = popOperation();
 	if(lastOp == NULL) return;
@@ -90,14 +88,10 @@ void undo(){
 		break;
 		case LUT3:
 			//On régénère le lut supprimé
-			ltIn = (Lut*) goToBottomCell(lastOp->list)->userData;
-			lt = createLut(ltIn->channels, lastOp->type.savedLut->function, lastOp->type.savedLut->functionValue, lastOp->type.savedLut->maxValue);
-			if(lt == NULL){
+			if(!addLut(lastOp->type.savedLut->owner, lastOp->type.savedLut->function, lastOp->type.savedLut->functionValue)){
 				fprintf(stderr, "\nErreur : Impossible d'annuler la suppression de l'effet.\n");
 				return;//Impératif sinon l'opération est supprimée !!!
 			}
-			//On le rajoute à sa liste
-			addLut(lastOp->type.savedLut->owner, lt);
 			printf("La suppression du Lut a été annulée.\n");
 		break;
 		default : printf("Dernière opération à annuler inconnue.\n");
@@ -221,6 +215,9 @@ void printSavedLut(SavedLut* sL){
 	break;
 	case DIMCON : 
 		printf("Diminution du contraste : %d\n", sL->functionValue);
+	break;
+	case SEPIA :
+		printf("Effet sépia\n");
 	break;
 	//Ne devrait pas arriver
 	default : fprintf(stderr,"Fonction LUT inconnue.\n");

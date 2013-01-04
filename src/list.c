@@ -375,7 +375,7 @@ void* delBottomCell(List* list){
 }
 
 void freeBottomCell(List* list){
-	if(list == NULL) return NULL;
+	if(list == NULL) return;
 	
 	freeCellInList(list, list->bottom);
 }

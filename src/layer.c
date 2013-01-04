@@ -27,8 +27,14 @@ bool addNeutralLut(Layer* lay, int maxValue){
 		return false;
 	} 
 	
-	bool success = addLut(lay,neutralLut);
-	return success;
+	
+	lay->lutList = createList(LUT, neutralLut);
+	 if(lay->lutList == NULL){
+	 	fprintf(stderr, "Impossible d'initialiser la liste des lut.\n");
+	 	return false;
+	 }
+
+	return true;
 }
 
 Layer* createLayer(Image* source, double opa, LAYER_OP operation){
@@ -116,39 +122,66 @@ void dumpLayer(Layer* l){
 }
 
 
-bool addLut(Layer* lay, Lut* lt){
-	if(lay == NULL || lt == NULL)
+bool addLut(Layer* lay, LUT_FUNCTION function, int functionValue){
+	Lut* lt = NULL;
+	Channels* input = NULL;
+	if(lay == NULL || lay->lutList == NULL)
 		return false;
-		
-	if(lay->lutList == NULL){
-		lay->lutList = createList(LUT, lt);
-	 	if(lay->lutList == NULL)
-	 		return false;
-	 	return true;
+	
+	goToBottomCell(lay->lutList);
+	input = ((Lut*)currentData(lay->lutList))->channels;
+	
+	//Sepia est traité particulièrement car elle nécessite de transformer l'image en niveaux de gris
+	if(function == SEPIA){
+		lt = createSepiaLut(lay->imgFinale);
 	}
+	else lt = createLut(input, function, functionValue, lay->imgFinale->maxValue);
+	if(lt == NULL) return false;
 	
 	insertBottomCell(lay->lutList, lt);
 	goToBottomCell(lay->lutList);
+	
 	//On applique le LUT au calque
-	applyLutToImg(lay->imgSource, lay->imgFinale, (Lut*)currentData(lay->lutList));
+
+	applyLutToImg(lay->imgFinale, lay->imgFinale, (Lut*)currentData(lay->lutList));
+
+
 	return true;
 }
 
 Lut* delLastLut(Layer* lay){
 	if(lay == NULL) return NULL;
-	Lut* deletedLut = NULL;
+	Lut* lutToDelete = NULL;
 	
 	Cell* last = goToBottomCell(lay->lutList);
+	lutToDelete = (Lut*)last->userData;
+	
 	//S'il n'y a plus de lut à supprimer (le neutral doit rester)
-	if( ((Lut*)last->userData)->function == NEUTRAL ) return NULL;
+	if( lutToDelete->function == NEUTRAL ) return NULL;
 	
-	deletedLut =  delBottomCell(lay->lutList);
+	delBottomCell(lay->lutList);
 	
+	/*
 	//On régénère l'image finale
 	goToBottomCell(lay->lutList);
-	applyLutToImg(lay->imgSource, lay->imgFinale, (Lut*)currentData(lay->lutList));
+	//Trick pour récupérerl'adresse du pointeur lut
+	lutToApply = (Lut**)&(lay->lutList->cursor->userData);
 	
-	return deletedLut;
+	//Cas spécial SEPIA : il faut régénérer la LUT par rapport à l'image finale actuelle
+	if((*lutToApply)->function == SEPIA){
+		//Régénération de l'image finale
+		displayImage(lay->imgSource);//Evite segfault OpenGL
+		free(lay->imgFinale);
+		lay->imgFinale = copyImage(lay->imgSource);
+		//Régénration du lut sépia
+		*lutToApply = createSepiaLut(lay->imgFinale);
+	}
+	applyLutToImg(lay->imgFinale, lay->imgFinale, *lutToApply);
+	*/
+	applyLuts(lay);
+	
+	//On retourne le lut pour pouvoir le stocker dans l'historique
+	return lutToDelete;
 }
 
 void setLayerOpacity(Layer* lay, double newOpa){
@@ -164,23 +197,33 @@ void setLayerOperation(Layer* lay, LAYER_OP newOp){
 	lay->operation = newOp;
 }
 
-/*
-Image* applyLuts(Layer* lay){
-	if(lay == NULL) return NULL;
-	if(isListEmpty(lay->lutList)){
-	return NULL;
-	}
+
+void applyLuts(Layer* lay){
+	if(lay == NULL) return;
+
+	
+	//Régénération de l'image finale
+	displayImage(lay->imgSource);//Evite segfault OpenGL
+	free(lay->imgFinale);
+	lay->imgFinale = copyImage(lay->imgSource);
+	
+	//S'il n'y a que le Lut neutre, c'est qu'on doit afficher l'image de base
+	//donc rien à faire
+	if(lay->lutList->size  == 1) return;
 	
 	Lut* currentLut = NULL;
 	Lut* previousLut = NULL; 
 	
 	goToHeadList(lay->lutList);
-	
-	while(nextCell(lay->lutList) != NULL){
-		previousLut =(Lut*) previousData(lay->lutList);
-		currentLut = (Lut*) nextData(lay->lutList);
-		applyLut(currentLut->inputArrayRGB, previousLut->function, previousLut->valueEffect);
+	previousLut = (Lut*) nextData(lay->lutList);
+	while( ( currentLut = (Lut*) nextData(lay->lutList) ) != NULL){
+		
+		regenerateLut(&currentLut, previousLut->channels, lay->imgFinale);
+		
+		applyLutToImg(lay->imgFinale, lay->imgFinale, currentLut);
+		
+		previousLut = currentLut;
+		
 	}
-	return NULL;
-}*/
+}
 

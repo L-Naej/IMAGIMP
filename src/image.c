@@ -78,7 +78,7 @@ Image* loadImage(char* fileName){
 	
 	//Le programme ne gère que le PPM P6
 	if(img->format != 6){
-		fprintf(stderr, "Format de l'image non supporté.\n");
+		fprintf(stderr, "Format de l'image non supporté (PPM P6 uniquement).\n");
 		free(img->name);
 		free(img->comments);
 		free(img);
