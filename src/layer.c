@@ -1,5 +1,7 @@
 #include "layer.h"
 #include "lut.h"
+#include "lutfunction.h"//Pour imgToGray
+#include "ihm.h" //Pour displayImage
 #include <stdlib.h>
 
 /**
@@ -9,10 +11,7 @@ int cntLayerId = 0;
 
 //Fonction privée d'ajout du Lut neutre en début de liste
 bool addNeutralLut(Layer* lay, int maxValue){
-	int i = 0;
 	Channels* ntLutInput = NULL;
-	
-
 	
 	//Création de l'input pour le LUT Neutre	
 	ntLutInput = allocChannels(maxValue+1);
@@ -26,7 +25,6 @@ bool addNeutralLut(Layer* lay, int maxValue){
 		freeLayer(lay);
 		return false;
 	} 
-	
 	
 	lay->lutList = createList(LUT, neutralLut);
 	 if(lay->lutList == NULL){
@@ -131,20 +129,16 @@ bool addLut(Layer* lay, LUT_FUNCTION function, int functionValue){
 	goToBottomCell(lay->lutList);
 	input = ((Lut*)currentData(lay->lutList))->channels;
 	
-	//Sepia est traité particulièrement car elle nécessite de transformer l'image en niveaux de gris
-	if(function == SEPIA){
-		lt = createSepiaLut(lay->imgFinale);
-	}
-	else lt = createLut(input, function, functionValue, lay->imgFinale->maxValue);
+
+	lt = createLut(input, function, functionValue, lay->imgFinale->maxValue);
 	if(lt == NULL) return false;
 	
 	insertBottomCell(lay->lutList, lt);
 	goToBottomCell(lay->lutList);
 	
-	//On applique le LUT au calque
-
-	applyLutToImg(lay->imgFinale, lay->imgFinale, (Lut*)currentData(lay->lutList));
-
+	//On appelle la fonction qui teste si sépia est présent
+	//car cela implique des traitements spéciaux
+	applyLuts(lay);
 
 	return true;
 }
@@ -161,23 +155,6 @@ Lut* delLastLut(Layer* lay){
 	
 	delBottomCell(lay->lutList);
 	
-	/*
-	//On régénère l'image finale
-	goToBottomCell(lay->lutList);
-	//Trick pour récupérerl'adresse du pointeur lut
-	lutToApply = (Lut**)&(lay->lutList->cursor->userData);
-	
-	//Cas spécial SEPIA : il faut régénérer la LUT par rapport à l'image finale actuelle
-	if((*lutToApply)->function == SEPIA){
-		//Régénération de l'image finale
-		displayImage(lay->imgSource);//Evite segfault OpenGL
-		free(lay->imgFinale);
-		lay->imgFinale = copyImage(lay->imgSource);
-		//Régénration du lut sépia
-		*lutToApply = createSepiaLut(lay->imgFinale);
-	}
-	applyLutToImg(lay->imgFinale, lay->imgFinale, *lutToApply);
-	*/
 	applyLuts(lay);
 	
 	//On retourne le lut pour pouvoir le stocker dans l'historique
@@ -200,17 +177,33 @@ void setLayerOperation(Layer* lay, LAYER_OP newOp){
 
 void applyLuts(Layer* lay){
 	if(lay == NULL) return;
-
 	
-	//Régénération de l'image finale
-	displayImage(lay->imgSource);//Evite segfault OpenGL
-	free(lay->imgFinale);
-	lay->imgFinale = copyImage(lay->imgSource);
+	//Indique si l'effet sépia est aparu dans la chaîne
+	bool sepia = false;
 	
 	//S'il n'y a que le Lut neutre, c'est qu'on doit afficher l'image de base
-	//donc rien à faire
-	if(lay->lutList->size  == 1) return;
+	//Si cette fonction est appelée suite à une suppression, 
+	//il faut tout de même restaurer l'image de base
+	if(lay->lutList->size  == 1){
+		displayImage(lay->imgSource);//Evite segfault OpenGL
+		free(lay->imgFinale);
+		lay->imgFinale = copyImage(lay->imgSource);
+		return;	
+	} 
+
+	Image* tmp = copyImage(lay->imgSource);
 	
+	if(tmp == NULL){
+		fprintf(stderr, "\nImpossible d'allouer la mémoire nécessaire pour créer l'image temporaire. L'application des effets a échoué.\n");
+		return;
+	} 
+	
+
+	/* Le principe est le suivant :
+	   s'il y a l'effet sépia, on recalcule le
+	   pipeline des LUT APRES le lut effet sépia
+	   en ayant converti l'image en niveaux de gris.
+	*/
 	Lut* currentLut = NULL;
 	Lut* previousLut = NULL; 
 	
@@ -218,12 +211,24 @@ void applyLuts(Layer* lay){
 	previousLut = (Lut*) nextData(lay->lutList);
 	while( ( currentLut = (Lut*) nextData(lay->lutList) ) != NULL){
 		
-		regenerateLut(&currentLut, previousLut->channels, lay->imgFinale);
+		if(currentLut->function == SEPIA){
+			applyLutToImg(tmp, tmp, previousLut);
+			imgToGray(tmp,tmp);
+			sepia = true;
+		}
 		
-		applyLutToImg(lay->imgFinale, lay->imgFinale, currentLut);
+		else if(sepia){
+			regenerateLut(&currentLut, previousLut->channels, tmp);
+		}
 		
 		previousLut = currentLut;
 		
 	}
+	currentLut = (Lut*) currentData(lay->lutList);
+	
+	displayImage(lay->imgSource);//Evite segfault OpenGL
+	applyLutToImg(tmp, lay->imgFinale, currentLut);
+	
+	freeImage(tmp);
 }
 

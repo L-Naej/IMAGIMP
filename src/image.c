@@ -24,7 +24,7 @@ Image* loadImage(char* fileName){
 	
 	long position = 0;
 	short ctr = 0;
-	long int i, nPix;
+	long int nPix;
 	
 	imgFile = fopen(fileName, "r");
 	if(imgFile==NULL){

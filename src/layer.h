@@ -5,6 +5,10 @@
 #include "list.h"
 
 /**
+ * Un layer possède une image source qui n'est jamais modifiée
+ * et une image finale qui est le résultat de l'application des
+ * effets (LUT) à l'image source. 
+ *
  * NOTES : 
  * - Layer = Calque
  * - Chaque layer possède au moins un LUT "neutre" qui se
@@ -17,6 +21,9 @@
  * L'image finale est une nouvelle image de même dimensions que 
  * l'image source, et représentant le résultat de l'application
  * des effets sur l'image source.
+ * 
+ * Pour le fonctionnement en détail des LUT et de leur application au layer,
+ * voir lut.h
  */
 
 
@@ -75,7 +82,7 @@ bool addLut(Layer* lay, LUT_FUNCTION function, int functionValue);
 /**
  * Supprime de la liste le dernier lut ajouté sauf s'il
  * s'agit du lut neutral. Renvoie le lut supprimé de la liste.
- * (il n'est pas supprimé de la mémoire)
+ * (il n'est pas supprimé de la mémoire pour pouvoir être géré dans l'historique)
  */
 Lut* delLastLut(Layer* lay);
 
@@ -93,7 +100,11 @@ void setLayerOperation(Layer* lay, LAYER_OP newOp);
 
 /**
  * Génère l'image final après passage à travers
- * tous les LUT du layer.
+ * tous les LUT du layer. C'est cette fonction qui gère sépia.
+ * En effet normalement seule l'application du dernier LUT doit suffire
+ * à générer l'image finale. Seulement sépia nécessite un passage de l'image en niveaux de gris.
+ * Cette fonction se charge donc en fait de détecter si sépia est présent, puis de recalculer
+ * tous les LUT qui suivent chaque fonction sépia car sépia "casse" la chaîne.
  */
 void applyLuts(Layer* lay);
 

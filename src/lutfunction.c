@@ -151,4 +151,49 @@ void changeContrast(Lut* lt, Channels* input){
 	}
 }
 
+//Assume qu'elle travaille sur une image en niveaux de gris
+void sepia(Lut* sepia){
+	int result = 0, i =0;
+	
+	//Remplissage de ses channels pour faire du sépia
+	for(i = 0; i < sepia->size; ++i){
+		result = sepia->channels->chan1[i] + 100;
+		result = result > sepia->maxValue ? sepia->maxValue : result;
+		result = result < 0 ? 0 : result;
+		sepia->channels->chan1[i] = result;
+		
+		result = sepia->channels->chan2[i] + 50;
+		result = result > sepia->maxValue ? sepia->maxValue : result;
+		result = result < 0 ? 0 : result;
+		sepia->channels->chan2[i] = result;
+	}
+}
+
+
+bool imgToGray(Image* imgSource, Image* imgDest){
+	if(imgSource == NULL || imgSource->arrayRGB == NULL
+	||imgDest == NULL || imgDest->arrayRGB == NULL)
+		return false;
+	
+	//Conversion de l'image en niveau de gris
+	int i, result;
+	unsigned char  r, g, b;
+	
+	for(i = 0; i < imgSource->width*imgSource->height*3; i+=3){
+		r = imgSource->arrayRGB[i];
+		g = imgSource->arrayRGB[i+1];
+		b = imgSource->arrayRGB[i+2]; 
+		//Méthode luminosity average pour calcul du niveau de gris
+		result =  (int) floor(0.21*r + 0.71*g + 0.07*b);
+		
+		if(result > imgSource->maxValue) result = imgSource->maxValue;
+		
+		imgDest->arrayRGB[i] = (unsigned char) result;
+		imgDest->arrayRGB[i+1] = (unsigned char) result;
+		imgDest->arrayRGB[i+2] = (unsigned char) result;
+	}
+	
+	return true;
+}
+
 

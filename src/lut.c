@@ -64,7 +64,6 @@ Channels* createChanFromRGB(unsigned char* arrayRGB, int size){
  */
 Lut* createLut(Channels* input, LUT_FUNCTION lF, int val, int maxVal){
 	if(input == NULL) return NULL;
-	int i;
 	Lut* lt = (Lut*) malloc(sizeof(Lut));
 	if(lt==NULL) return NULL;
 	
@@ -95,11 +94,8 @@ Lut* createLut(Channels* input, LUT_FUNCTION lF, int val, int maxVal){
 			lt->valueEffect = - lt->valueEffect;
 			changeContrast (lt, input);
 		break;
-		//Si cette fonction est passée par erreur, on renvoie NULL
-		//Pour sépia appeler la fonction prévue pour
 		case SEPIA : 
-			freeLut(lt);
-			lt = NULL;
+			sepia(lt);
 		break;
 		default : fprintf(stderr,"Fonction LUT inconnue.\n");
 		break;
@@ -107,58 +103,6 @@ Lut* createLut(Channels* input, LUT_FUNCTION lF, int val, int maxVal){
 	
 return lt;
 
-}
-
-Lut* createSepiaLut(Image* imgSource){
-	if(imgSource == NULL || imgSource->arrayRGB == NULL)
-		return NULL;
-	
-	//Conversion de l'image en niveau de gris
-	int i, result;
-	unsigned char  r, g, b;
-	
-	for(i = 0; i < imgSource->width*imgSource->height*3; i+=3){
-		r = imgSource->arrayRGB[i];
-		g = imgSource->arrayRGB[i+1];
-		b = imgSource->arrayRGB[i+2]; 
-		//Méthode luminosity average pour calcul du niveau de gris
-		result =  (int) floor(0.21*r + 0.71*g + 0.07*b);
-		
-		if(result > imgSource->maxValue) result = imgSource->maxValue;
-		
-		imgSource->arrayRGB[i] = (unsigned char) result;
-		imgSource->arrayRGB[i+1] = (unsigned char) result;
-		imgSource->arrayRGB[i+2] = (unsigned char) result;
-	}
-	
-	//Création du lut sépia
-	Lut* sepia = (Lut*) calloc(1,sizeof(Lut));
-	if(sepia == NULL) return NULL;
-	
-	sepia->maxValue = imgSource->maxValue;
-	sepia->size = imgSource->maxValue + 1;
-	sepia->function = SEPIA;
-	sepia->valueEffect = 0;
-	sepia->channels = allocChannels(sepia->size);
-	if(sepia->channels == NULL){
-		free(sepia);
-		return NULL;
-	}
-	
-	//Remplissage de ses channels pour faire du sépia
-	for(i = 0; i < sepia->size; ++i){
-		result = sepia->channels->chan1[i] + 100;
-		result = result > sepia->maxValue ? sepia->maxValue : result;
-		result = result < 0 ? 0 : result;
-		sepia->channels->chan1[i] = result;
-		
-		result = sepia->channels->chan2[i] + 50;
-		result = result > sepia->maxValue ? sepia->maxValue : result;
-		result = result < 0 ? 0 : result;
-		sepia->channels->chan2[i] = result;
-	}
-	
-	return sepia;
 }
 
 void regenerateLut(Lut** lt, Channels* input, Image* img){
@@ -183,9 +127,7 @@ void regenerateLut(Lut** lt, Channels* input, Image* img){
 			changeContrast (*lt, input);
 		break;
 		case SEPIA : 
-			if(img == NULL) return;
-			freeLut(*lt);
-			*lt = createSepiaLut(img);
+			sepia(*lt);
 		break;
 		default : fprintf(stderr,"Fonction LUT inconnue.\n");
 		break;

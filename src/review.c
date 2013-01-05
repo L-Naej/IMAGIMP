@@ -6,6 +6,9 @@
 //Variable globale représentant l'historique
 List* review = NULL;
 
+//Fonction interne
+void printSavedLut(SavedLut* sL);
+
 void initReview(){
 	//Si un historique existe déjà, 
 	//cette fonction le détruit.
@@ -84,7 +87,8 @@ void undo(){
 		break;
 		case LUT1:
 			delLastLut(lastOp->type.savedLut->owner);
-			printf("Le dernier effet ajouté à été supprimé.\n");
+			printf("Le dernier effet ajouté à été supprimé.\n\t");
+			printSavedLut(lastOp->type.savedLut);
 		break;
 		case LUT3:
 			//On régénère le lut supprimé
@@ -93,6 +97,7 @@ void undo(){
 				return;//Impératif sinon l'opération est supprimée !!!
 			}
 			printf("La suppression du Lut a été annulée.\n");
+			printSavedLut(lastOp->type.savedLut);
 		break;
 		default : printf("Dernière opération à annuler inconnue.\n");
 		break;
@@ -303,6 +308,8 @@ void freeOperation(Operation* op){
 		case LUT1:
 		case LUT3:
 			free(op->type.savedLut);
+		break;
+		default : //Rien
 		break;
 	}
 	free(op);

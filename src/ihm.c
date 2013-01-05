@@ -186,7 +186,7 @@ void printState(){
 	} 
 	
 	printf("\n----Position actuelle----\n");
-	printf("Calque n°%d\n", layerList->position);
+	printf("Calque n°%d (id %d)\n", layerList->position, lay->id);
 	printf("Image source : ");
 	if(lay->imgSource->name != NULL)
 		printf("%s\n", lay->imgSource->name);
