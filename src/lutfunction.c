@@ -56,18 +56,9 @@ void addLum(Lut* lt, Channels* input){
 		if(tmp > lt->maxValue) tmp = lt->maxValue;
 		else if (tmp < 0) tmp = 0;
 		lt->channels->chan3[i] = (unsigned char) tmp;
-		
-		
-		/*
-		tmp = yuv->chan1[i] + lt->valueEffect;
-		if(tmp > lt->maxValue) tmp = lt->maxValue;
-		else if (tmp < 0) tmp = 0;
-		yuv->chan1[i] = tmp;
-		*/
+	
 	}
 	
-	//yuvToRGB(yuv, lt->channels, lt->size, lt->maxValue);
-	//freeChannels(yuv);
 }
 
 
@@ -159,12 +150,10 @@ void sepia(Lut* sepia){
 	for(i = 0; i < sepia->size; ++i){
 		result = sepia->channels->chan1[i] + 100;
 		result = result > sepia->maxValue ? sepia->maxValue : result;
-		result = result < 0 ? 0 : result;
 		sepia->channels->chan1[i] = result;
 		
 		result = sepia->channels->chan2[i] + 50;
 		result = result > sepia->maxValue ? sepia->maxValue : result;
-		result = result < 0 ? 0 : result;
 		sepia->channels->chan2[i] = result;
 	}
 }

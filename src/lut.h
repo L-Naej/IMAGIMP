@@ -59,6 +59,7 @@ typedef enum lut_function{
 	ADDCON = 4,
 	DIMCON = 5,
 	SEPIA = 6,
+	GRAY = 7,
 	NEUTRAL = 0
 	} LUT_FUNCTION;
 

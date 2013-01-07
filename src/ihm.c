@@ -224,6 +224,9 @@ void printState(){
 			case SEPIA :
 				printf("\tSépia\n");
 			break;
+			case GRAY :
+				printf("\tConversion noirs et blancs\n");
+			break;
 			case NEUTRAL : continue;
 			break;
 		}
@@ -429,6 +432,7 @@ bool userAddLut(List* layerList){
 	printf("%d.Augmenter le contraste\n", ADDCON);
 	printf("%d.Diminuer le constraste\n", DIMCON);
 	printf("%d.Effet sépia\n", SEPIA);
+	printf("%d.Convertir l'image en noirs et blancs\n", GRAY);
 	printf("Entrez le numéro correspondant : ");
 	readStdin(choice, 2);
 	
@@ -437,7 +441,7 @@ bool userAddLut(List* layerList){
 	lF = numChoice;
 	
 	//Si une valeur doit être demandée
-	if(lF != INVERT && lF != SEPIA){
+	if(lF != INVERT && lF != SEPIA && lF != GRAY){
 		printf("Valeur de l'effet : ");
 		readStdin(value, 4);
 		numValue = atoi(value);

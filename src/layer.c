@@ -211,7 +211,7 @@ void applyLuts(Layer* lay){
 	previousLut = (Lut*) nextData(lay->lutList);
 	while( ( currentLut = (Lut*) nextData(lay->lutList) ) != NULL){
 		
-		if(currentLut->function == SEPIA){
+		if(currentLut->function == SEPIA || currentLut->function == GRAY){
 			applyLutToImg(tmp, tmp, previousLut);
 			imgToGray(tmp,tmp);
 			sepia = true;

@@ -224,6 +224,9 @@ void printSavedLut(SavedLut* sL){
 	case SEPIA :
 		printf("Effet sépia\n");
 	break;
+	case GRAY :
+		printf("Conversion de l'image en noirs et blancs\n");
+	break;
 	//Ne devrait pas arriver
 	default : fprintf(stderr,"Fonction LUT inconnue.\n");
 	break;

@@ -97,6 +97,9 @@ Lut* createLut(Channels* input, LUT_FUNCTION lF, int val, int maxVal){
 		case SEPIA : 
 			sepia(lt);
 		break;
+		case GRAY :
+			//ne rien faire
+		break;
 		default : fprintf(stderr,"Fonction LUT inconnue.\n");
 		break;
 	}
@@ -128,6 +131,9 @@ void regenerateLut(Lut** lt, Channels* input, Image* img){
 		break;
 		case SEPIA : 
 			sepia(*lt);
+		break;
+		case GRAY :
+			neutral(*lt, input);
 		break;
 		default : fprintf(stderr,"Fonction LUT inconnue.\n");
 		break;
