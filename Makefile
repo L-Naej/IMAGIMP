@@ -1,6 +1,5 @@
 # $(BIN) est la nom du binaire genere
 BIN = bin/imagimp
-BINTEST = bin/test
 # FLAG
 FLAGS = -g -Wall
 #Répertoire d'include des librairies
@@ -11,15 +10,37 @@ LIBDIR = ./lib
 LIBS =  -lglimagimp -lglut -lGL -lGLU -lm
 # Compilateur
 CC = gcc
-SRC = src/image.c src/utils.c src/lut.c src/lutfunction.c src/list.c src/imagimp.c  src/layersManager.c src/ihm.c src/layer.c src/review.c
-#src/list.c src/layer.c 
-SRCTEST = src/testListes.c $(SRC)
 
-all:
-	@$(CC) -o $(BIN) $(FLAGS) $(SRC) -I$(INCLUDES) -L$(LIBDIR) $(LIBS) 
+SRC_PATH = src
+OBJ_PATH = obj
+BIN_PATH = bin
+
+LIB_COMPILED = FALSE
+SRC_FILES = $(shell find $(SRC_PATH) -type f -name '*.c')
+OBJ_FILES = $(patsubst $(SRC_PATH)/%.c, $(OBJ_PATH)/%.o, $(SRC_FILES))
+
+all : imagimp 
+ 
+imagimp: $(OBJ_FILES)
+	@echo "PHASE DE LIEN..."
+	@$(CC) $(FLAGS) -L$(LIBDIR) -I$(INCLUDES) -o $(BIN) $^ $(LIBS)
+	@echo "Compilation terminé.\nExécutez $(BIN) pour lancer le programme."
+
+$(OBJ_PATH)/%.o: $(SRC_PATH)/%.c $(SRC_PATH)/%.h libs
+		@echo "Génération de $@\c"
+		@$(CC) -I$(INCLUDES) $(FLAGS) -c $< -o $@
+		@echo " =>OK"
+		
+libs :
+	@echo "\n-----Compilation des librairies du projet-----"
+	@(cd $(LIBDIR) && $(MAKE))
 	
-test:
-	@$(CC) -o$(BINTEST) $(FLAGS) $(SRCTEST) -I$(INCLUDES) -L$(LIBDIR) $(LIBS)
-	@$(BINTEST) images/Clown.256.ppm
 clean:
 	rm -f $(BIN)
+	rm -f $(OBJ_PATH)/*.o $(SRC_PATH)/*~ $(INCLUDES)/*~ 
+	find . -name "*~" -exec rm {} \;
+
+#Nettoie aussi dans les libs
+bigclean: clean
+	@(cd $(LIBDIR) && $(MAKE) bigclean)
+

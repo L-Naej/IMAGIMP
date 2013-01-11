@@ -1,6 +1,6 @@
 # $(BIN) est la nom du binaire généré
-BIN = libglimagimp.a
-BINDYN = libglimagimp.so
+BIN_GLIM = libglimagimp.so
+BIN_LIST = liblist.so
 # FLAG
 FLAGS = -Wall -fPIC -g
 # INCLUDES
@@ -12,41 +12,41 @@ LIBDIR = .
 # SOURCES
 SRC = ./src
 # Librairies
-LIBS = -lGL -lGLU -lm
+LIBS_GLIM = -lGL -lGLU -lm
 # Compilateur
 CC = gcc
-# Pour la librairie statique
-AR = ar rcs
 # OBJET
 DIR_OBJ = obj
 ## OBJ_MATH : liste des objets de la bibliothèque
-OBJECTS = $(DIR_OBJ)/interface.o $(DIR_OBJ)/outils.o
+OBJ_GLIM = $(DIR_OBJ)/interface.o $(DIR_OBJ)/outils.o
+OBJ_LIST = $(DIR_OBJ)/list.o
 
-# all est la première règle à être exécutée car elle est la première
-# dans le fichier Makefile. Notons que les dépendances peuvent être
-# remplacées par une variable, ainsi que n'importe quel chaine de
-# caractères des commandes
-all: $(OBJECTS)
-	@echo "**** PHASE DE LIEN ****"
-	$(CC) -L$(LIBDIR) $(LIBS) $(OBJECTS) -fPIC -shared -o $(LIBFIN)/$(BINDYN)
+#finalement list n'étant pas une bibliothèque indépendante, 
+#est compilée avec le projet
+all: glimagimp
+	@echo "-----Fin de la compilation des librairies.-----\n"
+	
+glimagimp: $(OBJ_GLIM)
+	@echo "Phase de lien glimagimp..."
+	@$(CC) -L$(LIBDIR) $(LIBS_GLIM) $(OBJ_GLIM) -fPIC -shared -o $(LIBFIN)/$(BIN_GLIM)
+	@echo "glimagimp compilée"
+	
+list: $(OBJ_LIST)
+	@echo "Phase de lien liblist..."
+	@$(CC) $(OBJ_LIST) -fPIC -shared -o $(LIBFIN)/$(BIN_LIST)
+	@echo "liblist compilée"
 
-static: $(OBJECTS)
-	@echo "**** PHASE DE LIEN ****"
-	$(AR) $(LIBFIN)/$(BIN) $(OBJECTS)
 
 $(DIR_OBJ)/%.o: $(SRC)/%.c $(INC)/%.h
-	@echo "**** $@ ****"
-	$(CC) -I$(INC) $(FLAGS) -c $< -o $@
-
+	@echo "Génération de $@\c"
+	@$(CC) -I$(INC) $(FLAGS) -c $< -o $@
+	@echo "=>OK"
+	
 clean:
 	rm -f $(DIR_OBJ)/*.o
 	find . -name "*~" -exec rm {} \;
 
 bigclean:
-	rm -f $(DIR_OBJ)/*.o $(SRC)/*~ $(INC)/*~ $(LIBFIN)/$(BIN) $(LIBFIN)/$(BINDYN)
+	rm -f $(DIR_OBJ)/*.o $(SRC)/*~ $(INC)/*~ $(LIBFIN)/$(BIN_GLIM) $(LIBFIN)/$(BIN_LIST)
 	find . -name "*~" -exec rm {} \;
-
-tar:
-	make clean
-	tar -czvf glimagimp.tgz INSTALL install.sh lib/ sample/ include/
 
