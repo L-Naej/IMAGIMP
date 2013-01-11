@@ -61,6 +61,22 @@ Layer* createLayer(Image* source, double opa, LAYER_OP operation){
 		return NULL;
 	}
 	
+	//Génération des histogrammes (au début histo final = histo source)
+	l->histoSource = NULL;
+	l->histoFinal = NULL;
+	l->histoSource = createHistogram(l->imgSource);
+	
+	if(l->histoSource == NULL){
+		fprintf(stderr, "Impossible d'allouer la mémoire nécessaire pour l'histogramme de l'image du calque d'id %d.\n", l->id);
+	}
+	
+	//Au départ aucun effet appliqué donc l'histogramme de départ
+	//et le même que celui d'arrivée.
+	l->histoFinal = copyImage(l->histoSource);
+	if(l->histoFinal == NULL){
+		fprintf(stderr, "Impossible d'allouer la mémoire nécessaire pour l'histogramme de l'image du calque d'id %d.\n", l->id);
+	}
+	
 	return l;
 }
 
@@ -88,6 +104,22 @@ Layer* createEmptyLayer(int w, int h){
 		return NULL;
 	}
 	
+	//Génération des histogrammes (au début histo final = histo source)
+	l->histoSource = NULL;
+	l->histoFinal = NULL;
+	l->histoSource = createHistogram(l->imgSource);
+	
+	if(l->histoSource == NULL){
+		fprintf(stderr, "Impossible d'allouer la mémoire nécessaire pour l'histogramme de l'image du calque d'id %d.\n", l->id);
+	}
+	
+	//Au départ aucun effet appliqué donc l'histogramme de départ
+	//et le même que celui d'arrivée.
+	l->histoFinal = copyImage(l->histoSource);
+	if(l->histoFinal == NULL){
+		fprintf(stderr, "Impossible d'allouer la mémoire nécessaire pour l'histogramme de l'image du calque d'id %d.\n", l->id);
+	}
+	
 	return l;
 }
 
@@ -96,6 +128,8 @@ void freeLayer(Layer* l){
 	if(l== NULL) return;
 	freeImage(l->imgSource);
 	freeImage(l->imgFinale);
+	freeImage(l->histoSource);
+	freeImage(l->histoFinal);
 	
 	//Suppression des LUT
 	freeListComplete(l->lutList);
@@ -232,3 +266,14 @@ void applyLuts(Layer* lay){
 	freeImage(tmp);
 }
 
+bool generateFinalHistogram(Layer* lay){
+	if(lay == NULL) return false;
+	
+	//Evite segFault au cas où l'histo est déjà affiché
+	displayImage(lay->imgFinale);
+	freeImage(lay->histoFinal);
+	lay->histoFinal = createHistogram(lay->imgFinale);
+	if(lay->histoFinal == NULL) return false;
+	
+	return true;
+}

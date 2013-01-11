@@ -64,8 +64,8 @@ Image* loadImage(char* fileName){
 			case 0 : img->format = (short) atoi((currentTxt+1));
 			break;
 			case 1 : 
-				detectWH(currentTxt, &img->width, &img->height);
-				//sscanf(currentTxt, "%d %d", &img->width, &img->height);
+				//detectWH(currentTxt, &img->width, &img->height);
+				sscanf(currentTxt, "%d %d", &img->width, &img->height);
 			break;
 			case 2 : img->maxValue = atoi(currentTxt);
 			break;
@@ -317,18 +317,86 @@ bool histoRGB (Image* img, int** hR,  int** hG,  int** hB){
 	return true;
 }
 	
-bool histo (Image* img, int** h){
+bool histo (Image* img, long int** h){
 	if(img ==NULL || h==NULL)return false;
 	int i;
 	int val=0;
-	int* histo=(int*)calloc(256, sizeof(int));
+	long int* histo=(long int*)calloc(img->maxValue+1, sizeof(long int));
 	
 	for (i=0; i <((img->width)*(img->height))*3; i+=3){ 
-		val=(0.299*img->arrayRGB[i])+(0.587*img->arrayRGB[i+1])+(0.114*img->arrayRGB[i+2]);
-		histo[val]=histo[val]+1;
-		}
+		val= (img->arrayRGB[i]+img->arrayRGB[i+1]+img->arrayRGB[i+2])/3;
+		histo[val]++;
+	}
+	normalizeHisto(histo, img->maxValue + 1);	
 	*h=histo;
 	return true;
+}
+
+//L'histogramme donne des pourcentages
+void normalizeHisto(long int* histo, int size){
+	int i = 0;
+	long int max = maxInTab(histo, size);
+	for(i = 0; i < size; ++i){
+		//Wouhou mini optimisation
+		if(histo[i] == 0) continue;
+		//Arrondi supérieur
+		histo[i] = (long int) ceil(((double)((double)histo[i] / (double)max)) * 100.0);
+
+	}
+	
+}
+
+Image* createHistogram(Image* source){
+	if(source == NULL) return NULL;
+	Image* histogram = NULL;
+	long int* tabHisto = NULL;
+	
+	int i = 0, j = 0, k = 0, x = 0, y = 0, index = 0;
+	//Largeur en pixel d'une colonne de valeur de l'histo
+	int wCol = ((int) floor(source->width / (source->maxValue + 1)) );
+	//Hauteur en pixel d'une unité de l'axe Y (un % de l'histo)
+	int hCol = ((int) floor(source->height / 100) );
+	
+	//Calcul du tableau représentant l'histogramme
+	histo(source, &tabHisto);
+	if(tabHisto == NULL){
+		fprintf(stderr, "Le calcul de l'histogramme à échoué.\n");
+		return NULL;
+	}
+	
+	//Génération de l'image qui va représenter graphiquement l'histogramme
+	histogram = createEmptyImg(source->width, source->height, source->maxValue);
+	if(histogram == NULL){
+		fprintf(stderr, "Impossible d'allouer la mémoire nécessaire pour l'histogramme de l'image %s.\n", source->name==NULL? "(nom inconnu)" : source->name);
+		free(tabHisto);
+		return NULL;
+	}
+	
+	//Remplissage de l'image
+	/*
+	 * Pour les deux premières boucles for on raisonne en pixels.
+	 * Les deux dernières boucles for aussi mais index
+	 * raisonne en 3 composantes par pixels.
+	 */
+	for(y = 0; y + hCol <= source->height; y = y + hCol){
+		for(x = 0; x + wCol <= source->width; x = x + wCol){
+			k = x / wCol;
+			if ( 100 - (y/hCol) < tabHisto[k] && tabHisto[k] != 0){
+				for(i = y; i < y + hCol; ++i){
+					for(j = x; j < x + wCol; ++j){
+						index = i*(source->width)*3 + j*3;
+						histogram->arrayRGB[index] = 0;
+						histogram->arrayRGB[index+1] = 0;
+						histogram->arrayRGB[index+2] = 0;
+					}
+				}
+			}
+		}
+	}
+	
+	invertPPMArray(histogram->arrayRGB, histogram->width, histogram->height);
+	
+	return histogram;
 }
 	
 void dumpImage(Image* img){

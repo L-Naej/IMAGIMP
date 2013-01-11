@@ -147,6 +147,9 @@ int findNextLut(int argc, char** argv, int index, LUT_FUNCTION* function, int* f
 	else if(strcmp("SEPIA", argv[index]) == 0){
 		*function = SEPIA;
 	}
+	else if(strcmp("GRAY", argv[index]) == 0){
+		*function = GRAY;
+	}
 	else{ 
 		fprintf(stderr,"Code lUT inconnu : %s.\n", argv[index]);
 		*parseError = true;
@@ -612,6 +615,24 @@ void keyboardSpecialListener(int c, int x, int y){
 			displayCurrentLayer(layerList);
 			printState();
 		break;
+		case GLUT_KEY_DOWN :
+			lay = currentLayer(layerList);
+			displayImage(lay->histoSource);
+			printf("\n\t==>Affichage de l'histogramme de %s.<==\n", lay->imgSource->name != NULL? lay->imgSource->name : "l'image du calque");
+			printf("\n\t   Appuyez sur 'c' pour revenir au calque courant.\n");
+		break;
+		case GLUT_KEY_UP :
+			lay = currentLayer(layerList);
+			if(generateFinalHistogram(lay)){
+				displayImage(lay->histoFinal);
+				printf("\n\t==>Affichage de l'histogramme de %s après application des effets.<==\n", lay->imgSource->name != NULL? lay->imgSource->name : "l'image finale du calque");
+				printf("\n\t   Appuyez sur 'c' pour revenir au calque courant.\n");
+			}
+			else{
+				fprintf(stderr, "\nErreur : impossible de calculer l'histogramme final...\n");
+			}
+			
+		break;
 		default : printf("Touche non reconnue.\n");
 		break;	
 	}
@@ -630,6 +651,8 @@ void displayCommands(){
  	printf("\n\n****** Commandes utilisateurs ******\n\n");
 	puts("KEY_LEFT : calque précédent");
 	puts("KEY_RIGHT : calque suivant");
+	puts("KEY_DOWN : histogramme image source du calque");
+	puts("KEY_UP: histogramme image finale (avec effets) du calque");
 	puts("ESCAPE : quitter le programme");
 	puts("SPACE : afficher les commandes");
 	puts("a: ajouter un calque");

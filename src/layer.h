@@ -37,6 +37,8 @@ typedef struct layer{
 	int id;
 	Image* imgSource;
 	Image* imgFinale;
+	Image* histoSource;
+	Image* histoFinal;
 	double opacity;
 	LAYER_OP operation;
 	List* lutList;
@@ -107,5 +109,11 @@ void setLayerOperation(Layer* lay, LAYER_OP newOp);
  * tous les LUT qui suivent chaque fonction sépia car sépia "casse" la chaîne.
  */
 void applyLuts(Layer* lay);
+
+/*
+ * Génère l'histogramme final de l'image du calque.
+ * C'est à dire de l'image après application des effets.
+ */
+bool generateFinalHistogram(Layer* lay);
 
 #endif

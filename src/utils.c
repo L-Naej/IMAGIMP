@@ -116,12 +116,13 @@ void clearStdin(){
 	} while (c != '\n' && c != EOF);
 }
 
-unsigned char minInTab(unsigned char* tab, int size){
+long int minInTab(long int* tab, int size){
 	if(tab == NULL) return 0;
 	
-	int i = 0, min = 255;//taille max d'un unsigned char
+	int i = 0;
+	long int min = tab[0];
 	
-	for(i = 0; i < size; ++i){
+	for(i = 1; i < size; ++i){
 		if(tab[i] < min)
 			min = tab[i];
 	}
@@ -129,12 +130,13 @@ unsigned char minInTab(unsigned char* tab, int size){
 	return min;
 }
 
-unsigned char maxInTab(unsigned char* tab, int size){
+long int maxInTab(long int* tab, int size){
 	if(tab == NULL) return 0;
 	
-	int i = 0, max = 0;//taille min d'un unsigned char
+	int i = 0;
+	long int max = tab[0];//taille min d'un unsigned char
 	
-	for(i = 0; i < size; ++i){
+	for(i = 1; i < size; ++i){
 		if(tab[i] > max)
 			max = tab[i];
 	}

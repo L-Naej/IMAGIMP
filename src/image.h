@@ -5,6 +5,18 @@
 #define DEFAULT_MAX_VAL 255
 #define NB_COL_COMP 3 //nombre de composantes couleur (RGB=>3)
 
+/*
+ * Représente une image stockée en mémoire.
+ * En principe peut stocker n'importe quel type d'image
+ * sous la forme d'un tableau à une dimension d'unsigned char
+ * (donc valeur max d'une composante = 255).
+ * Concrètement dans le programme ne stocke que des images
+ * PPM P6. Les valeurs sont stockées dans un tableau qui accole 
+ * les composantes RGB. 
+ * L'image PPM est normalement inversée (si chargée par loadImage()) 
+ * pour être affichée à l'endroit dans OpenGL. La fonction de sauvegarde
+ * (saveImage()) se charge de la remettre dans le sens valide PPM.
+ */
 typedef struct image{
 	short format;//P1 to P6
 	char* comments;
@@ -63,8 +75,32 @@ Image* copyImage(Image* source);
 
 bool histoRGB (Image* img, int** hR,  int** hG,  int** hB);
 
-bool histo (Image* img,int** h);
+/**
+ * Génère un tableau représentant l'histogramme
+ * de l'image passée en paramètre.
+ * L'histogramme créé est normalisé.
+ */
+bool histo(Image* img, long int** h);
 
+/**
+ * Normalise un tableau représentant un histogramme.
+ * La valeur max de l'histogramme = 100.
+ * (fonction utilisée par histo)
+ */
+void normalizeHisto(long int* histo, int size);
+
+/**
+ * Créé une image qui représente
+ * l'histogramme de l'image passée en paramètre.
+ * Utilise la fonction histo.
+ */
+Image* createHistogram(Image* source);
+
+/*
+ * Fonction de debug des paramètres
+ * de la structure Image (affiche la valeur
+ * des paramètres dans la console).
+ */
 void dumpImage(Image* img);
 
 #endif
