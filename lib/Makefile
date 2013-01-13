@@ -12,7 +12,7 @@ LIBDIR = .
 # SOURCES
 SRC = ./src
 # Librairies
-LIBS_GLIM = -lGL -lGLU -lm
+LIBS_GLIM = -lGL -lGLU -lglut -lm
 # Compilateur
 CC = gcc
 # OBJET
@@ -23,12 +23,11 @@ OBJ_LIST = $(DIR_OBJ)/list.o
 
 #finalement list n'étant pas une bibliothèque indépendante, 
 #est compilée avec le projet
-all: glimagimp
-	@echo "-----Fin de la compilation des librairies.-----\n"
+all:$(LIBFIN)/$(BIN_GLIM) 
 	
-glimagimp: $(OBJ_GLIM)
+$(LIBFIN)/$(BIN_GLIM): $(OBJ_GLIM)
 	@echo "Phase de lien glimagimp..."
-	@$(CC) -L$(LIBDIR) $(LIBS_GLIM) $(OBJ_GLIM) -fPIC -shared -o $(LIBFIN)/$(BIN_GLIM)
+	@$(CC) -L$(LIBDIR) $(OBJ_GLIM) -fPIC -shared -o $(LIBFIN)/$(BIN_GLIM) $(LIBS_GLIM)
 	@echo "glimagimp compilée"
 	
 list: $(OBJ_LIST)
