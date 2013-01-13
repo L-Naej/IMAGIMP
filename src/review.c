@@ -307,6 +307,9 @@ void displayReview(){
 void freeOperation(Operation* op){
 	if(op == NULL) return;
 	switch(op->name){
+		case IM1 : 
+			freeImage(op->type.img);
+		break;
 		case CAL1 :
 		case CAL3 :
 		case CAL4 :
