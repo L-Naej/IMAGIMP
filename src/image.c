@@ -283,8 +283,14 @@ Image* copyImage(Image* source){
 		fprintf(stderr, "Erreur mémoire lors de la copie d'une image.\n");
 		return NULL;
 	}
-	int i = 0, nPix = source->width*source->height*NB_COL_COMP;
-	
+	int i = 0, size = 0, nPix = source->width*source->height*NB_COL_COMP;
+	if(source->name != NULL){
+		size = strlen(source->name) + 1;
+		copy->name = (char*) calloc(size, sizeof(char));
+		strcpy(copy->name, source->name);
+	 }
+	 else copy->name = NULL;
+		
 	copy->maxValue = source->maxValue;
 	copy->width = source->width;
 	copy->height = source->height;

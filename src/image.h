@@ -58,6 +58,7 @@ bool imgAddName(Image* img, const char name[]);
  * -dimensions
  * -valeur maximale
  * -format
+ * -nom
  */
 Image* copyImage(Image* source);
 

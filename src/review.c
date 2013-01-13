@@ -151,7 +151,11 @@ bool recordImgOperation(Image* img, OperationName opName){
 	if(img == NULL || opName != IM1) return false;
 
 	ReviewType type;
-	type.img = img;
+	type.img = copyImage(img);
+	if(type.img == NULL){
+		fprintf(stderr, "Impossible de sauvegarder l'état de l'image initiale (IM1) dans l'historique.\n");
+	}
+	
 	
 	Operation* op = createOperation(opName, type, NULL);
 	if(op == NULL){
@@ -244,7 +248,8 @@ void printOperation(Operation* curOp){
 	switch(curOp->name){
 		case IM1 : 
 			printf("Chargement de l'image de base.\n");
-			printf("\tImage chargée : %s\n", curOp->type.img->name);
+			if(curOp->type.img != NULL)
+				printf("\tImage chargée : %s\n", curOp->type.img->name != NULL ?curOp->type.img->name : "nom inconnu");
 		break;
 		case CAL1 : 
 			printf("Ajout d'un calque.\n");
