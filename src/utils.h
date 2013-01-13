@@ -54,12 +54,12 @@ void clearStdin();
 /**
  * Renvoie plus petite valeur du tableau.
  */
-unsigned char minInTab(unsigned char* tab, int size);
+long int minInTab(long int* tab, int size);
 
 /**
  * Renvoie plus grande valeur du tableau.
  */
-unsigned char maxInTab(unsigned char* tab, int size);
+long int maxInTab(long int* tab, int size);
 
 /**
  * Compare et renvoie le lpus petit

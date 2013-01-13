@@ -23,7 +23,9 @@ int main(int argc, char** argv){
 	printState();
 	
 	Image* img = ((Layer*)currentData(layerList))->imgFinale;
+	
 	initGLIMAGIMP(img->width, img->height, img->arrayRGB);
+	
 	
 	
 	return 0;

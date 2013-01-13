@@ -7,6 +7,8 @@
  * Commandes utilisateurs :
  * KEY_LEFT : calque précédent
  * KEY_RIGHT : calque suivant
+ * KEY_DOWN : histogramme image source du calque");
+ * KEY_UP: histogramme image finale (avec effets) du calque");
  * ESCAPE : quitte le programme
  * SPACE : afficher les commandes
  * a: ajouter un calque
