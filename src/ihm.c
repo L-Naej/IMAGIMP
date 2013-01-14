@@ -18,6 +18,11 @@ int findNextLut(int argc, char** argv, int index, LUT_FUNCTION* function, int* f
 //pointeur entre deux appels de cette fonction
 Image* finalImage = NULL; 
 
+//Pour savoir si l'utilisateur est en train de visualiser l'histogramme
+//Permet de voir l'effet des LUT en live sur l'histo en gardant l'affichage
+//sur l'histogramme lors de l'ajout d'un effet.
+bool onHistogram = false;
+
 void initIHM(){
 	fixeFonctionClavier(keyboardListener);	
 	fixeFonctionClavierSpecial(keyboardSpecialListener);
@@ -166,7 +171,8 @@ int findNextLut(int argc, char** argv, int index, LUT_FUNCTION* function, int* f
 void displayCurrentLayer(List* layerList){
 	if(layerList == NULL || layerList->type != LAYER)
 		return;
-	displayImage(currentLayer(layerList)->imgFinale);	
+	if(onHistogram)displayImage(currentLayer(layerList)->histoFinal);
+	else displayImage(currentLayer(layerList)->imgFinale);	
 }
 
 void displayImage(const Image* img){
@@ -519,6 +525,7 @@ void keyboardListener(unsigned char c, int x, int y){
 			printf("Appuyer sur \'c\' pour revenir au calque courant.\n");
 		break;
 		case 'c' :
+			onHistogram = false;
 			displayCurrentLayer(layerList);
 			printState();
 		break;
@@ -609,6 +616,7 @@ void keyboardSpecialListener(int c, int x, int y){
 				nextLayer(layerList);
 				return;
 			}
+			onHistogram = false;
 			displayCurrentLayer(layerList);
 			printState();
 		break;
@@ -616,6 +624,7 @@ void keyboardSpecialListener(int c, int x, int y){
 			lay = nextLayer(layerList);
 			//Si on était sur le dernier layer, lay == NULL
 			if(lay == NULL) return;
+			onHistogram = false;
 			displayCurrentLayer(layerList);
 			printState();
 		break;
@@ -635,7 +644,7 @@ void keyboardSpecialListener(int c, int x, int y){
 			else{
 				fprintf(stderr, "\nErreur : impossible de calculer l'histogramme final...\n");
 			}
-			
+			onHistogram = true;
 		break;
 		default : printf("Touche non reconnue.\n");
 		break;	
@@ -692,11 +701,13 @@ void clickMouse(int button,int state,int x,int y) {
 			}
 			//ADD EMPTY LAYER
 			else if (x>524 && x<702 && y<171 && y>152){
+				onHistogram = false;
 				userAddEmptyLayer(layerList);
 				printState();	
 			}
 			//ADD LAYER
 			else if (x>524 && x<702 && y<205 && y>184){
+				onHistogram = false;
 				userAddLayer(layerList);
 				printState();	
 			}
@@ -740,6 +751,7 @@ void clickMouse(int button,int state,int x,int y) {
 			}
 			//DISPLAY CURRENT LAYER
 			else if (x>524 && x<702 && y<289 && y>267){
+				onHistogram = false;
 				displayCurrentLayer(layerList);
 				printState();	
 			}
@@ -747,6 +759,7 @@ void clickMouse(int button,int state,int x,int y) {
 			else if (x>524 && x<702 && y<315 && y>298){
 				//A faire tout de suite sinon opengl risque 
 				//de tenter d'afficher une image d'un layer qui n'existe plus
+				onHistogram = false;
 				if(currentCell(layerList) != layerList->head){
 					previousCell(layerList);
 					displayCurrentLayer(layerList);
@@ -785,14 +798,12 @@ void clickMouse(int button,int state,int x,int y) {
 			//DISPLAY HISTOGRAM
 			else if (x>524 && x<702 && y<431 && y>406){
 				Layer* lay = currentLayer(layerList);
-				if(generateFinalHistogram(lay)){
-					displayImage(lay->histoFinal);
-					printf("\n\t==>Affichage de l'histogramme de %s après application des effets.<==\n", lay->imgSource->name != NULL? lay->imgSource->name : "l'image finale du calque");
-					printf("\t   Appuyez sur 'c' pour revenir au calque courant.\n");
-				}
-				else{
-					fprintf(stderr, "\nErreur : impossible de calculer l'histogramme final...\n");
-				}
+				onHistogram = true;
+				displayCurrentLayer(layerList);
+				
+				printf("\n\t==>Affichage de l'histogramme de %s après application des effets.<==\n", lay->imgSource->name != NULL? lay->imgSource->name : "l'image finale du calque");
+				printf("\t   Appuyez sur 'c' pour revenir au calque courant.\n");
+		
 			}
 			//GENERATE FINAL IMAGE
 			else if (x>524 && x<610 && y<496 && y>449){

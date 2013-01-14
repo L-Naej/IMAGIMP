@@ -264,6 +264,11 @@ void applyLuts(Layer* lay){
 	applyLutToImg(tmp, lay->imgFinale, currentLut);
 	
 	freeImage(tmp);
+	
+	//On génère l'histogramme final
+	if( ! generateFinalHistogram(lay) ){
+		fprintf(stderr, "\nErreur : impossible de calculer l'histogramme final...\n");
+	}
 }
 
 bool generateFinalHistogram(Layer* lay){
