@@ -27,9 +27,9 @@ $(BIN): $(OBJ_FILES)
 	@echo "Compilation terminée.\nExécutez $(BIN) pour lancer le programme."
 
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c $(SRC_PATH)/%.h $(LIBS)
-		@echo "Génération de $@\c"
+		@echo "Génération de $@ \c"
 		@$(CC) -I$(INCLUDES) $(FLAGS) -c $< -o $@
-		@echo " =>OK"
+		@echo "=>OK"
 		
 $(LIBS):
 	@echo "\n-----Compilation des librairies du projet-----"

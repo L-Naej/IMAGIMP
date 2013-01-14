@@ -22,6 +22,8 @@ typedef struct saved_layer{
 	LAYER_OP oldOperation;
 	LAYER_OP newOperation;
 	int position;
+	int id;
+	char* imgName;
 } SavedLayer;
 
 /**
@@ -39,12 +41,14 @@ typedef struct saved_lut{
 	LUT_FUNCTION function;
 	int functionValue;
 	int maxValue;
+	int ownerId;
+	char* imgName;
 }SavedLut;
 
 typedef union core_review{
 	SavedLayer* savedLayer;
 	SavedLut* savedLut;
-	Image* img;
+	char* imgName;
 }ReviewType;
 
 /* /!\Pourquoi sauvegarder la lutList ? => si l'utilisateur supprime un lut,

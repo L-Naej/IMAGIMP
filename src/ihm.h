@@ -90,12 +90,12 @@ double userSetOpacity();
 LAYER_OP userSetLayerOp();
 
 /*
- * Supprime le calque courant.
- * Renvoie true si la suppression s'est bien passée,
- * false sinon (on ne peut supprimer un calque
- * s'il est seul).
+ * Supprime le calque courant de la liste.
+ * Renvoie un pointeur vers le layer supprimé de la liste.
+ * Ce layer n'a pas été supprimé de la mémoire 
+ * (pour pouvoir l'ajouter à l'historique).
  */
-bool userDelCurrentLayer(List* layerList);
+Layer* userDelCurrentLayer(List* layerList);
 
 /**
  * Sauvegarde l'image finale, résultat de
@@ -127,13 +127,17 @@ void keyboardListener(unsigned char c, int x, int y);
 void keyboardSpecialListener(int c, int x, int y);
 
 /**
+ * Fonction de callback qui récupère les click
+ * souris pour gérer les interactions utilisateur.
+ */
+void clickMouse(int button,int state,int x,int y);
+
+/**
  * Fonction de callback appelée lors
  * du clic sur la croix de fermeture de la fenêtre,
  * ou lors de l'appuie sur la touche escape.
  * Libère la mémoire avant de fermer le programme.
  */
- 
-void clickMouse(int button,int state,int x,int y);
 void exitProgramClean();
 
 /**

@@ -78,18 +78,19 @@ Layer* currentLayer(List* layerList){
 	return (Layer*) currentData(layerList);	
 }
 
-bool delCurrentLayer(List* layerList){
+Layer* delCurrentLayer(List* layerList){
 	if(layerList == NULL || layerList->type != LAYER)
 		return false;
 	//Impossible de supprimer s'il n'y a qu'un seul calque
 	if(layerList->size == 1) return false;
 	
 	Cell* c = currentCell(layerList);
+	Layer* curLay = NULL;
 	
 	//Suppression du calque de la liste en vidant
 	//complètement la mémoire
-	freeCellInList(layerList, c);
-	return true;
+	curLay = delCellInList(layerList, c);
+	return curLay;
 }
 
 bool delLayer(List* layerList, Layer* lay){

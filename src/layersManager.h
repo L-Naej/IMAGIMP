@@ -47,9 +47,10 @@ Layer* nextLayer(List* layerList);
 Layer* previousLayer(List* layerList);
 
 /**
- * Supprime le layer courant.
+ * Supprime le layer courant de la liste des calques
+ * et le renvoie (ne le supprime donc pas de la mémoire).
  */
-bool delCurrentLayer(List* layerList);
+Layer* delCurrentLayer(List* layerList);
 
 /**
  * Supprime le layer lay de la liste des

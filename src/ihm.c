@@ -389,7 +389,7 @@ LAYER_OP userSetLayerOp(){
 	return operation;
 }
 
-bool userDelCurrentLayer(List* layerList){
+Layer* userDelCurrentLayer(List* layerList){
 	
 	return delCurrentLayer(layerList);
 }
@@ -492,16 +492,15 @@ bool userDelCurrentLut(List* layerList){
 	return true;
 }
 
-//A FINIR
 void keyboardListener(unsigned char c, int x, int y){
 	//Définie dans imagimp.c
 	extern List* layerList;
 	
 	//On ne pas apparemment pas déclarer une
 	//variable dans un switch...
-	
 	double opacity;
 	LAYER_OP operation;
+	Layer* deletedLay = NULL;
 	
 	switch(c){
 		//Touche échap
@@ -553,10 +552,10 @@ void keyboardListener(unsigned char c, int x, int y){
 				displayCurrentLayer(layerList);
 				nextCell(layerList);
 			}
-			if( userDelCurrentLayer(layerList) ){
+			if( (deletedLay = userDelCurrentLayer(layerList) ) != NULL ){
 				displayCurrentLayer(layerList);
 				printf("Calque supprimé.\n");
-				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL5)){
+				if( !recordLayerOperation(layerList, deletedLay, CAL5)){
 					fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
 				}
 				
@@ -597,7 +596,6 @@ void keyboardListener(unsigned char c, int x, int y){
 	}
 }
 
-//A FINIR
 void keyboardSpecialListener(int c, int x, int y){
 	//Définie dans imagimp.c
 	extern List* layerList;
@@ -648,67 +646,83 @@ void keyboardSpecialListener(int c, int x, int y){
 
 void clickMouse(int button,int state,int x,int y) {
 	extern List* layerList;
+	Layer* deletedLayer = NULL;
 	if (button == GLUT_LEFT_BUTTON) {
 		if (state == GLUT_DOWN) {
+			//INVERT
 			if (x>524 && x<577 && y<71 && y>24){
 				userAddLut(layerList,1,0);
 				displayCurrentLayer(layerList);
 				printState();	
 			}
+			//SEPIA
 			else if (x>589 && x<643 && y<71 && y>24){
 				userAddLut(layerList,6,0);
 				displayCurrentLayer(layerList);
 				printState();	
 			}
+			//GRAYSCALE
 			else if (x>654 && x<707 && y<71 && y>24){
 				userAddLut(layerList,7,0);
 				displayCurrentLayer(layerList);
 				printState();	
 			}
+			//DIMLUM
 			else if (x>524 && x<544 && y<119 && y>104){
 				userAddLut(layerList,3,10);
 				displayCurrentLayer(layerList);
 				printState();	
 			}
+			//ADDLUM
 			else if (x>593 && x<612 && y<119 && y>104){
 				userAddLut(layerList,2,10);
 				displayCurrentLayer(layerList);
 				printState();	
 			}
+			//DIMCON
 			else if (x>625 && x<643 && y<119 && y>104){
 				userAddLut(layerList,5,40);
 				displayCurrentLayer(layerList);
 				printState();	
 			}
+			//ADDCON
 			else if (x>681 && x<702 && y<119 && y>104){
 				userAddLut(layerList,4,40);
 				displayCurrentLayer(layerList);
 				printState();	
 			}
+			//ADD EMPTY LAYER
 			else if (x>524 && x<702 && y<171 && y>152){
 				userAddEmptyLayer(layerList);
 				printState();	
 			}
+			//ADD LAYER
 			else if (x>524 && x<702 && y<205 && y>184){
 				userAddLayer(layerList);
 				printState();	
 			}
+			//DIM OPACITY
 			else if (x>524 && x<544 && y<254 && y>236){
 				printf("less opacity\n");
 			}
+			//ADD OPACITY
 			else if (x>593 && x<612 && y<254 && y>236){
 				printf("more opacity\n");
 			}
+			//OPERATION => SUM
 			else if (x>625 && x<643 && y<254 && y>236){
 				printf("Op Add\n");
 			}
+			//OPERATION => MULT
 			else if (x>682 && x<700 && y<254 && y>236){
 				printf("Op Mul\n");
 			}
+			//DISPLAY CURRENT LAYER
 			else if (x>524 && x<702 && y<289 && y>267){
 				displayCurrentLayer(layerList);
 				printState();	
 			}
+			//DEL CURRENT LAYER
 			else if (x>524 && x<702 && y<315 && y>298){
 				if(currentCell(layerList) != layerList->head){
 				previousCell(layerList);
@@ -725,11 +739,13 @@ void clickMouse(int button,int state,int x,int y) {
 				else	printf("\n\t /!\\Un seul calque est présent, vous ne pouvez pas le supprimer./!\\\n");
 				printState();	
 			}
+			//UNDO
 			else if (x>524 && x<610 && y<368 && y>347){
 				undo();
 				displayCurrentLayer(layerList);
 				printState();	
 			}
+			//DEL CURRENT LUT
 			else if (x>621 && x<702 && y<368 && y>347){
 				if(userDelCurrentLut(layerList))
 				printf("\n\t---->Dernier effet supprimé.\n");
@@ -737,12 +753,15 @@ void clickMouse(int button,int state,int x,int y) {
 				displayCurrentLayer(layerList);
 				printState();	
 			}
+			//DISPLAY REVIEW
 			else if (x>524 && x<702 && y<401 && y>379){
 				displayReview();
 			}
+			//DISPLAY HISTOGRAM
 			else if (x>524 && x<702 && y<431 && y>406){
 				printf("Histogram\n");
 			}
+			//GENERATE FINAL IMAGE
 			else if (x>524 && x<610 && y<496 && y>449){
 				freeImage(finalImage);
 				generateFinalImage(layerList, &finalImage);
@@ -750,6 +769,7 @@ void clickMouse(int button,int state,int x,int y) {
 				printf("Affichage du résultat final. ");
 				printf("Appuyer sur \'c\' pour revenir au calque courant.\n");
 			}
+			//SAVE FINAL IMAGE
 			else if (x>621 && x<702 && y<496 && y>449){
 				userSaveFinalImage(layerList);
 			}

@@ -2,6 +2,7 @@
 #include "layersManager.h"
 #include "list.h"
 #include "ihm.h"//Pour displayCurrentLayer voir fonction undo
+#include <string.h>
 
 //Variable globale représentant l'historique
 List* review = NULL;
@@ -96,7 +97,7 @@ void undo(){
 				fprintf(stderr, "\nErreur : Impossible d'annuler la suppression de l'effet.\n");
 				return;//Impératif sinon l'opération est supprimée !!!
 			}
-			printf("La suppression du Lut a été annulée.\n");
+			printf("La suppression du Lut a été annulée.\n\t");
 			printSavedLut(lastOp->type.savedLut);
 		break;
 		default : printf("Dernière opération à annuler inconnue.\n");
@@ -133,6 +134,15 @@ bool recordLayerOperation(List* layerList, Layer* lay, OperationName opName){
 	sL->oldOpacity = lay->opacity;
 	sL->oldOperation = lay->operation;
 	sL->position = layerList->position;
+	sL->id = lay->id;
+	sL->imgName = NULL;
+	
+	if(lay->imgSource->name != NULL){
+		sL->imgName = (char*) calloc(strlen(lay->imgSource->name)+1, sizeof(char));
+		if(sL->imgName != NULL){
+			strcpy(sL->imgName, lay->imgSource->name);
+		}
+	}
 	
 	ReviewType type;
 	type.savedLayer = sL;
@@ -151,9 +161,15 @@ bool recordImgOperation(Image* img, OperationName opName){
 	if(img == NULL || opName != IM1) return false;
 
 	ReviewType type;
-	type.img = copyImage(img);
-	if(type.img == NULL){
-		fprintf(stderr, "Impossible de sauvegarder l'état de l'image initiale (IM1) dans l'historique.\n");
+	if(img->name == NULL) type.imgName = "Nom de l'image inconnu";
+	else{
+		type.imgName = (char*) calloc(strlen(img->name)+1, sizeof(char));
+		if(type.imgName == NULL){
+			fprintf(stderr, "Impossible de sauvegarder le nom de l'image initiale (IM1) dans l'historique.\n");
+		}
+		else{
+			strcpy(type.imgName, img->name);
+		}
 	}
 	
 	
@@ -180,6 +196,14 @@ bool recordLutOperation(List* lutList, Layer* owner, Lut* lt, OperationName opNa
 	sL->function = lt->function;
 	sL->functionValue = lt->valueEffect;
 	sL->maxValue = lt->maxValue;
+	sL->ownerId = owner->id;
+	
+	if(owner->imgSource->name != NULL){
+		sL->imgName = (char*) calloc(strlen(owner->imgSource->name)+1, sizeof(char));
+		if(sL->imgName != NULL){
+			strcpy(sL->imgName, owner->imgSource->name);
+		}
+	}
 	
 	ReviewType type;
 	type.savedLut = sL;
@@ -236,9 +260,9 @@ void printSavedLut(SavedLut* sL){
 	break;
 	}
 	
-	printf("\tSur le calque d'id n°%d\n", sL->owner->id);
-	if(sL->owner->imgSource->name != NULL)
-		printf("\tD'image source %s\n", sL->owner->imgSource->name);
+	printf("\tSur le calque d'id n°%d\n", sL->ownerId);
+	if(sL->imgName != NULL)
+		printf("\tD'image source %s\n", sL->imgName);
 }
 
 
@@ -248,16 +272,16 @@ void printOperation(Operation* curOp){
 	switch(curOp->name){
 		case IM1 : 
 			printf("Chargement de l'image de base.\n");
-			if(curOp->type.img != NULL)
-				printf("\tImage chargée : %s\n", curOp->type.img->name != NULL ?curOp->type.img->name : "nom inconnu");
+			if(curOp->type.imgName != NULL)
+				printf("\tImage chargée : %s\n", curOp->type.imgName);
 		break;
 		case CAL1 : 
 			printf("Ajout d'un calque.\n");
 			printf("\tCalque ajouté en position %d\n", curOp->type.savedLayer->position);
-			if(curOp->type.savedLayer->ptrLay->imgSource->name != NULL)
-				printf("\tD'image source : %s\n", curOp->type.savedLayer->ptrLay->imgSource->name);
+			if(curOp->type.savedLayer->imgName != NULL)
+				printf("\tD'image source : %s\n", curOp->type.savedLayer->imgName);
 			else
-				printf("\tCalque vierge.\n");
+				printf("\tCalque vierge (ou nom d'image source inconnu).\n");
 		break;
 		case CAL3 : 
 			printf("Changement d'opacité d'un calque.\n");
@@ -273,7 +297,7 @@ void printOperation(Operation* curOp){
 			else printf("Multiplication\n");
 		break;
 		case CAL5 : 
-			printf("Suppression du calque n°%d\n", curOp->type.savedLayer->position);
+			printf("Suppression du calque n°%d (d'id %d)\n", curOp->type.savedLayer->position, curOp->type.savedLayer->id);
 			
 		break;
 		case LUT1 :
@@ -290,14 +314,11 @@ void printOperation(Operation* curOp){
 }
 
 void displayReview(){
-	goToBottomCell(review);
+	goToHeadList(review);
 	Operation* curOp = NULL;
 	
-	printf("\n\n----------HISTORIQUE DES OPERATIONS (ordre chronologique inverse)----------\n");
-	curOp = (Operation*) currentData(review);
-	printOperation(curOp);
-			
-	while( ( curOp = (Operation*) previousData(review) ) != NULL){
+	printf("\n\n----------HISTORIQUE DES OPERATIONS (ordre chronologique)----------\n");			
+	while( ( curOp = (Operation*) nextData(review) ) != NULL){
 		printOperation(curOp);
 	}
 	
@@ -308,16 +329,18 @@ void freeOperation(Operation* op){
 	if(op == NULL) return;
 	switch(op->name){
 		case IM1 : 
-			freeImage(op->type.img);
+			free(op->type.imgName);
 		break;
 		case CAL1 :
 		case CAL3 :
 		case CAL4 :
 		case CAL5 :
+			free(op->type.savedLayer->imgName);
 			free(op->type.savedLayer);
 		break;
 		case LUT1:
 		case LUT3:
+			free(op->type.savedLut->imgName);
 			free(op->type.savedLut);
 		break;
 		default : //Rien
