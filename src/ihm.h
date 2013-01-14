@@ -104,7 +104,7 @@ void userSaveFinalImage(List* layerList);
 /**
  * Ajoute un lut au calque courant.
  */
-bool userAddLut(List* layerList);
+bool userAddLut(List* layerList,char mousechoice, char mousevalue);
 
 /**
  * Fonction de callback appelée lors de l'appui
@@ -130,6 +130,8 @@ void keyboardSpecialListener(int c, int x, int y);
  * ou lors de l'appuie sur la touche escape.
  * Libère la mémoire avant de fermer le programme.
  */
+ 
+void clickMouse(int button,int state,int x,int y);
 void exitProgramClean();
 
 /**
