@@ -219,7 +219,7 @@ void printState(){
 				printf("\tDiminution de luminosité : %d\n", lt->valueEffect);
 			break;
 			case ADDCON :
-				printf("\tAjout de constraste : %d\n",lt->valueEffect);
+				printf("\tAjout de contraste : %d\n",lt->valueEffect);
 			break;
 			case DIMCON :
 				printf("\tDiminution de contraste : %d\n",lt->valueEffect);
@@ -419,7 +419,7 @@ void userSaveFinalImage(List* layerList){
 	
 }
 
-bool userAddLut(List* layerList){
+bool userAddLut(List* layerList,char mousechoice, char mousevalue){
 	if(layerList == NULL) return false;
 	
 	char choice[2], value[4];
@@ -436,18 +436,25 @@ bool userAddLut(List* layerList){
 	printf("%d.Diminuer le constraste\n", DIMCON);
 	printf("%d.Effet sépia\n", SEPIA);
 	printf("%d.Convertir l'image en noirs et blancs\n", GRAY);
-	printf("Entrez le numéro correspondant : ");
-	readStdin(choice, 2);
 	
+	
+	if (mousechoice ==0){
+	printf("Entrez le numéro correspondant : ");
+	readStdin(choice, 2);		
 	numChoice = atoi(choice);
+	}
+	else numChoice = mousechoice;
 	
 	lF = numChoice;
 	
 	//Si une valeur doit être demandée
 	if(lF != INVERT && lF != SEPIA && lF != GRAY){
+		if (mousevalue ==0){	
 		printf("Valeur de l'effet : ");
-		readStdin(value, 4);
+		readStdin(value, 4);	
 		numValue = atoi(value);
+		}
+		else numValue = mousevalue;
 	}
 	
 	//Création du Lut et ajout de ce lut dans la liste.
@@ -574,7 +581,7 @@ void keyboardListener(unsigned char c, int x, int y){
 		break;
 		case 'l' :
 			//Historique géré dans la fonction
-			userAddLut(layerList);
+			userAddLut(layerList,0,0);
 			displayCurrentLayer(layerList);
 			printState();
 		break;
@@ -635,6 +642,125 @@ void keyboardSpecialListener(int c, int x, int y){
 		break;
 		default : printf("Touche non reconnue.\n");
 		break;	
+	}
+}
+
+
+void clickMouse(int button,int state,int x,int y) {
+	extern List* layerList;
+	if (button == GLUT_LEFT_BUTTON) {
+		if (state == GLUT_DOWN) {
+			if (x>524 && x<577 && y<71 && y>24){
+				userAddLut(layerList,1,0);
+				displayCurrentLayer(layerList);
+				printState();	
+			}
+			else if (x>589 && x<643 && y<71 && y>24){
+				userAddLut(layerList,6,0);
+				displayCurrentLayer(layerList);
+				printState();	
+			}
+			else if (x>654 && x<707 && y<71 && y>24){
+				userAddLut(layerList,7,0);
+				displayCurrentLayer(layerList);
+				printState();	
+			}
+			else if (x>524 && x<544 && y<119 && y>104){
+				userAddLut(layerList,3,10);
+				displayCurrentLayer(layerList);
+				printState();	
+			}
+			else if (x>593 && x<612 && y<119 && y>104){
+				userAddLut(layerList,2,10);
+				displayCurrentLayer(layerList);
+				printState();	
+			}
+			else if (x>625 && x<643 && y<119 && y>104){
+				userAddLut(layerList,5,40);
+				displayCurrentLayer(layerList);
+				printState();	
+			}
+			else if (x>681 && x<702 && y<119 && y>104){
+				userAddLut(layerList,4,40);
+				displayCurrentLayer(layerList);
+				printState();	
+			}
+			else if (x>524 && x<702 && y<171 && y>152){
+				userAddEmptyLayer(layerList);
+				printState();	
+			}
+			else if (x>524 && x<702 && y<205 && y>184){
+				userAddLayer(layerList);
+				printState();	
+			}
+			else if (x>524 && x<544 && y<254 && y>236){
+				printf("less opacity\n");
+			}
+			else if (x>593 && x<612 && y<254 && y>236){
+				printf("more opacity\n");
+			}
+			else if (x>625 && x<643 && y<254 && y>236){
+				printf("Op Add\n");
+			}
+			else if (x>682 && x<700 && y<254 && y>236){
+				printf("Op Mul\n");
+			}
+			else if (x>524 && x<702 && y<289 && y>267){
+				displayCurrentLayer(layerList);
+				printState();	
+			}
+			else if (x>524 && x<702 && y<315 && y>298){
+				if(currentCell(layerList) != layerList->head){
+				previousCell(layerList);
+				displayCurrentLayer(layerList);
+				nextCell(layerList);
+				}
+				if( userDelCurrentLayer(layerList) ){
+				displayCurrentLayer(layerList);
+				printf("Calque supprimé.\n");
+					if( !recordLayerOperation(layerList, currentLayer(layerList), CAL5)){
+						fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
+					}
+				}
+				else	printf("\n\t /!\\Un seul calque est présent, vous ne pouvez pas le supprimer./!\\\n");
+				printState();	
+			}
+			else if (x>524 && x<610 && y<368 && y>347){
+				undo();
+				displayCurrentLayer(layerList);
+				printState();	
+			}
+			else if (x>621 && x<702 && y<368 && y>347){
+				if(userDelCurrentLut(layerList))
+				printf("\n\t---->Dernier effet supprimé.\n");
+			
+				displayCurrentLayer(layerList);
+				printState();	
+			}
+			else if (x>524 && x<702 && y<401 && y>379){
+				displayReview();
+			}
+			else if (x>524 && x<702 && y<431 && y>406){
+				printf("Histogram\n");
+			}
+			else if (x>524 && x<610 && y<496 && y>449){
+				freeImage(finalImage);
+				generateFinalImage(layerList, &finalImage);
+				displayImage(finalImage);
+				printf("Affichage du résultat final. ");
+				printf("Appuyer sur \'c\' pour revenir au calque courant.\n");
+			}
+			else if (x>621 && x<702 && y<496 && y>449){
+				userSaveFinalImage(layerList);
+			}
+				
+		}
+		else { // state == GLUT_UP
+		}
+	}
+	else if (button == GLUT_MIDDLE_BUTTON) {
+	}
+	else { // button == GLUT_RIGHT_BUTTON
 	}
 }
 
