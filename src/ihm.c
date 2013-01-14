@@ -428,20 +428,18 @@ bool userAddLut(List* layerList,char mousechoice, char mousevalue){
 	
 	LUT_FUNCTION lF = NEUTRAL;
 	
-	puts("Effet à ajouter au calque courant :");
-	printf("%d.Invert\n", INVERT);
-	printf("%d.Augmenter luminosité\n", ADDLUM);
-	printf("%d.Diminuer luminosité\n", DIMLUM);
-	printf("%d.Augmenter le contraste\n", ADDCON);
-	printf("%d.Diminuer le constraste\n", DIMCON);
-	printf("%d.Effet sépia\n", SEPIA);
-	printf("%d.Convertir l'image en noirs et blancs\n", GRAY);
-	
-	
 	if (mousechoice ==0){
-	printf("Entrez le numéro correspondant : ");
-	readStdin(choice, 2);		
-	numChoice = atoi(choice);
+		puts("Effet à ajouter au calque courant :");
+		printf("%d.Invert\n", INVERT);
+		printf("%d.Augmenter luminosité\n", ADDLUM);
+		printf("%d.Diminuer luminosité\n", DIMLUM);
+		printf("%d.Augmenter le contraste\n", ADDCON);
+		printf("%d.Diminuer le constraste\n", DIMCON);
+		printf("%d.Effet sépia\n", SEPIA);
+		printf("%d.Convertir l'image en noirs et blancs\n", GRAY);
+		printf("Entrez le numéro correspondant : ");
+		readStdin(choice, 2);		
+		numChoice = atoi(choice);
 	}
 	else numChoice = mousechoice;
 	
@@ -449,10 +447,10 @@ bool userAddLut(List* layerList,char mousechoice, char mousevalue){
 	
 	//Si une valeur doit être demandée
 	if(lF != INVERT && lF != SEPIA && lF != GRAY){
-		if (mousevalue ==0){	
-		printf("Valeur de l'effet : ");
-		readStdin(value, 4);	
-		numValue = atoi(value);
+		if (mousevalue == 0){	
+			printf("Valeur de l'effet : ");
+			readStdin(value, 4);	
+			numValue = atoi(value);
 		}
 		else numValue = mousevalue;
 	}
@@ -538,6 +536,7 @@ void keyboardListener(unsigned char c, int x, int y){
 		break;
 		case 'm' :
 			operation = userSetLayerOp();
+			//On enregistre l'état du calque avant de le modifier
 			if( !recordLayerOperation(layerList, currentLayer(layerList), CAL4)){
 				fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
 			}
@@ -624,14 +623,14 @@ void keyboardSpecialListener(int c, int x, int y){
 			lay = currentLayer(layerList);
 			displayImage(lay->histoSource);
 			printf("\n\t==>Affichage de l'histogramme de %s.<==\n", lay->imgSource->name != NULL? lay->imgSource->name : "l'image du calque");
-			printf("\n\t   Appuyez sur 'c' pour revenir au calque courant.\n");
+			printf("\t   Appuyez sur 'c' pour revenir au calque courant.\n");
 		break;
 		case GLUT_KEY_UP :
 			lay = currentLayer(layerList);
 			if(generateFinalHistogram(lay)){
 				displayImage(lay->histoFinal);
 				printf("\n\t==>Affichage de l'histogramme de %s après application des effets.<==\n", lay->imgSource->name != NULL? lay->imgSource->name : "l'image finale du calque");
-				printf("\n\t   Appuyez sur 'c' pour revenir au calque courant.\n");
+				printf("\t   Appuyez sur 'c' pour revenir au calque courant.\n");
 			}
 			else{
 				fprintf(stderr, "\nErreur : impossible de calculer l'histogramme final...\n");
@@ -703,19 +702,41 @@ void clickMouse(int button,int state,int x,int y) {
 			}
 			//DIM OPACITY
 			else if (x>524 && x<544 && y<254 && y>236){
-				printf("less opacity\n");
+				double opacity = currentLayer(layerList)->opacity - 0.1;
+				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL3)){
+					fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
+				}
+				setLayerOpacity(currentLayer(layerList), opacity);
+				printf("Opacité du calque courant modifiée à %lf\n", opacity);
+				printState();
 			}
 			//ADD OPACITY
 			else if (x>593 && x<612 && y<254 && y>236){
-				printf("more opacity\n");
+				double opacity = currentLayer(layerList)->opacity + 0.1;
+				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL3)){
+					fprintf(stderr, "\nUne erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
+				}
+				setLayerOpacity(currentLayer(layerList), opacity);
+				printf("\nOpacité du calque courant modifiée à %lf\n", opacity);
+				printState();
 			}
 			//OPERATION => SUM
 			else if (x>625 && x<643 && y<254 && y>236){
-				printf("Op Add\n");
+				//On enregistre l'état du calque avant de le modifier
+				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL4)){
+					fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
+				}
+				setLayerOperation(currentLayer(layerList), SUM);
+				printf("\nOpération du calque courant modifiée.\n");
 			}
 			//OPERATION => MULT
 			else if (x>682 && x<700 && y<254 && y>236){
-				printf("Op Mul\n");
+				//On enregistre l'état du calque avant de le modifier
+				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL4)){
+					fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
+				}
+				setLayerOperation(currentLayer(layerList), MULTIPLICATION);
+				printf("\nOpération du calque courant modifiée.\n");
 			}
 			//DISPLAY CURRENT LAYER
 			else if (x>524 && x<702 && y<289 && y>267){
@@ -724,20 +745,24 @@ void clickMouse(int button,int state,int x,int y) {
 			}
 			//DEL CURRENT LAYER
 			else if (x>524 && x<702 && y<315 && y>298){
+				//A faire tout de suite sinon opengl risque 
+				//de tenter d'afficher une image d'un layer qui n'existe plus
 				if(currentCell(layerList) != layerList->head){
-				previousCell(layerList);
-				displayCurrentLayer(layerList);
-				nextCell(layerList);
+					previousCell(layerList);
+					displayCurrentLayer(layerList);
+					nextCell(layerList);
 				}
-				if( userDelCurrentLayer(layerList) ){
-				displayCurrentLayer(layerList);
-				printf("Calque supprimé.\n");
-					if( !recordLayerOperation(layerList, currentLayer(layerList), CAL5)){
+				if( (deletedLayer = userDelCurrentLayer(layerList) ) != NULL ){
+					displayCurrentLayer(layerList);
+					printf("Calque supprimé.\n");
+					if( !recordLayerOperation(layerList, deletedLayer, CAL5)){
 						fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
 					}
+				
 				}
-				else	printf("\n\t /!\\Un seul calque est présent, vous ne pouvez pas le supprimer./!\\\n");
-				printState();	
+				else
+					printf("\n\t /!\\Un seul calque est présent, vous ne pouvez pas le supprimer./!\\\n");
+				printState();
 			}
 			//UNDO
 			else if (x>524 && x<610 && y<368 && y>347){
@@ -759,14 +784,22 @@ void clickMouse(int button,int state,int x,int y) {
 			}
 			//DISPLAY HISTOGRAM
 			else if (x>524 && x<702 && y<431 && y>406){
-				printf("Histogram\n");
+				Layer* lay = currentLayer(layerList);
+				if(generateFinalHistogram(lay)){
+					displayImage(lay->histoFinal);
+					printf("\n\t==>Affichage de l'histogramme de %s après application des effets.<==\n", lay->imgSource->name != NULL? lay->imgSource->name : "l'image finale du calque");
+					printf("\t   Appuyez sur 'c' pour revenir au calque courant.\n");
+				}
+				else{
+					fprintf(stderr, "\nErreur : impossible de calculer l'histogramme final...\n");
+				}
 			}
 			//GENERATE FINAL IMAGE
 			else if (x>524 && x<610 && y<496 && y>449){
 				freeImage(finalImage);
 				generateFinalImage(layerList, &finalImage);
 				displayImage(finalImage);
-				printf("Affichage du résultat final. ");
+				printf("\nAffichage du résultat final. ");
 				printf("Appuyer sur \'c\' pour revenir au calque courant.\n");
 			}
 			//SAVE FINAL IMAGE

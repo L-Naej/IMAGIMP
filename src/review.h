@@ -62,21 +62,69 @@ typedef struct operation{
 	List* list;//Nécessaire pour les annulations LUT et Layer
 }Operation;
 
+/**
+ * Initialise l'historique. Si un
+ * historique existait déjà en mémoire, il est
+ * supprimé.
+ */
 void initReview();
+
+/**
+ * Ajoute une opération dans la pile
+ * de l'historique.
+ */
 void pushOperation(Operation* op);
+
+/**
+ * Retire la dernière opération ajoutée
+ * à la pile.
+ */
 Operation* popOperation();
 
+/**
+ * Annule la dernière opération ajoutée à l'historique.
+ */
 void undo();
 
+/**
+ * Enregistre une opération liée à un calque.
+ */
 bool recordLayerOperation(List* layerList, Layer* lay, OperationName opName);
+
+/**
+ * Enregistre une opération liée au chargement de l'image
+ * initiale.
+ */
 bool recordImgOperation(Image* img, OperationName opName);
+
+/**
+ * Enregistre une opération liée à un LUT.
+ */
 bool recordLutOperation(List* lutList, Layer* owner, Lut* lt, OperationName opName);
 
+/**
+ * Affiche l'historique dans la console.
+ */
 void displayReview();
+
+/**
+ * Affiche une opération dans la console.
+ */
 void printOperation(Operation* curOp);
 
+/**
+ * Créé la structure Operation. C'est cette structure
+ * qui est stockée dans la pile historique.
+ */
 Operation* createOperation(OperationName name, ReviewType type, List* list);
 
+/**
+ * Libère la mémoire prise par une opération.
+ */
 void freeOperation(Operation* op);
+
+/**
+ * Libère la mémoire de l'historique.
+ */
 void freeReview();
 #endif

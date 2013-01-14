@@ -125,8 +125,7 @@ void regenerateLut(Lut** lt, Channels* input, Image* img){
 		case ADDCON : changeContrast (*lt, input);
 		break;
 		case DIMCON : 
-			//On prend une valeur négative
-			(*lt)->valueEffect = - (*lt)->valueEffect;
+			//On ne remodifie pas la valeur du contraste qui est déjà négative !!
 			changeContrast (*lt, input);
 		break;
 		case SEPIA : 

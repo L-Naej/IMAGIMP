@@ -289,7 +289,6 @@ void printOperation(Operation* curOp){
 			printf("\tAncienne opacité : %lf\n", curOp->type.savedLayer->oldOpacity);
 		break;
 		case CAL4 : 
-			printf("\tCAL4");
 			printf("\tChangement d'opération d'un calque.\n");
 			printf("\tCalque n°%d\n", curOp->type.savedLayer->position);
 			printf("\tAncienne opération : ");
