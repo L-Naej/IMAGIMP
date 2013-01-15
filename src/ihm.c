@@ -425,6 +425,29 @@ void userSaveFinalImage(List* layerList){
 	
 }
 
+bool userSaveHistogram(Layer* lay){
+	if(lay == NULL) return false;
+	char imgName[51] = "./images/";
+	imgName[51] = '\0';
+	char* sName = lay->imgSource->name;
+	
+	printf("Sauvegarde de l'histogramme du calque d'id %d d'image source %s.\n", lay->id, sName == NULL? "(nom inconnu)" : sName);
+	printf("Entrez le nom de l'image que vous voulez sauvegarder (max 50 caractères) : \n");
+	readStdin(imgName + 9, 51);
+	
+	if (! imgAddName(lay->histoFinal, imgName) ){
+		fprintf(stderr, "Le nommage de l'image a échoué. Nouveau nom : noname.ppm\n");
+	}
+	
+	if( ! saveImage(lay->histoFinal) ){
+		fprintf(stderr, "Une erreur est survenue pendant la sauvegarde de l'histogramme.\n");
+		return false;
+	}
+	
+	printf("%s sauvegardée.\n", imgName);
+	return true;
+}
+
 bool userAddLut(List* layerList,char mousechoice, char mousevalue){
 	if(layerList == NULL) return false;
 	
@@ -516,6 +539,7 @@ void keyboardListener(unsigned char c, int x, int y){
 			printState();
 		break;
 		case 'g':
+			onHistogram = false;
 			//Si elle existait déjà on la supprime (il y a peut-être
 			//de nouveaux calques ou de nouveaux LUT)
 			freeImage(finalImage);
@@ -571,7 +595,11 @@ void keyboardListener(unsigned char c, int x, int y){
 			printState();
 		break;
 		case 's':
-			userSaveFinalImage(layerList);
+			//Si on est sur l'histogramme, c'est lui qu'on désire sauvegarder
+			if(onHistogram){
+				userSaveHistogram(currentLayer(layerList));
+			}
+			else userSaveFinalImage(layerList);
 		break;
 		case ' ' :
 			displayCommands();
@@ -807,6 +835,7 @@ void clickMouse(int button,int state,int x,int y) {
 			}
 			//GENERATE FINAL IMAGE
 			else if (x>524 && x<610 && y<496 && y>449){
+				onHistogram = false;
 				freeImage(finalImage);
 				generateFinalImage(layerList, &finalImage);
 				displayImage(finalImage);
@@ -815,7 +844,10 @@ void clickMouse(int button,int state,int x,int y) {
 			}
 			//SAVE FINAL IMAGE
 			else if (x>621 && x<702 && y<496 && y>449){
-				userSaveFinalImage(layerList);
+				if(onHistogram){
+					userSaveHistogram(currentLayer(layerList));
+				}
+				else userSaveFinalImage(layerList);
 			}
 				
 		}
