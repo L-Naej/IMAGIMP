@@ -884,7 +884,7 @@ void displayCommands(){
 	puts("o: modifier l'opacité du calque courant");
 	puts("m: modifier la fonction de mélange du calque courant");
 	puts("d: supprimer le calque courant");
-	puts("s: sauvegarder l'image finale");
+	puts("s: sauvegarder l'image finale ou l'histogramme affiché");
 	puts("h: afficher l'historique");
 	puts("u: annuler la dernière opération");
 	puts("l: ajouter un effet au calque courant");

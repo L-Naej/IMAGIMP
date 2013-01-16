@@ -217,11 +217,16 @@ void applyLuts(Layer* lay){
 	
 	//S'il n'y a que le Lut neutre, c'est qu'on doit afficher l'image de base
 	//Si cette fonction est appelée suite à une suppression, 
-	//il faut tout de même restaurer l'image de base
+	//il faut tout de même restaurer l'image de base ainsi que
+	//l'histogramme
 	if(lay->lutList->size  == 1){
 		displayImage(lay->imgSource);//Evite segfault OpenGL
 		free(lay->imgFinale);
 		lay->imgFinale = copyImage(lay->imgSource);
+		//On génère l'histogramme final
+		if( ! generateFinalHistogram(lay) ){
+			fprintf(stderr, "\nErreur : impossible de calculer l'histogramme final...\n");
+		}
 		return;	
 	} 
 
