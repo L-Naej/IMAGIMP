@@ -12,6 +12,7 @@ List* review = NULL;
 void printSavedLut(SavedLut* sL);
 Layer* regenerateLayer(SavedLayer* sL);
 void restoreLayerInList(List* layerList, Layer* lay, int position, bool atEnd);
+SavedLut* saveLuts(List* lutList);
 
 void initReview(){
 	//Si un historique existe déjà, 
@@ -120,6 +121,7 @@ void undo(){
  * 1. Recharger en mémoire l'image source
  * 2. Appeler createLayer avec les données de sL
  * 3. Redonner son id au layer
+ * 4. Recharger la liste de luts
  * 4. C'est prêt !
  */
 Layer* regenerateLayer(SavedLayer* sL){
@@ -127,6 +129,7 @@ Layer* regenerateLayer(SavedLayer* sL){
 		return NULL;
 	Layer* rL = NULL;
 	Image* source = NULL;
+	int i = 0;
 	 
 	 if(sL->imgName == NULL){
 	 	source = createEmptyImg(sL->width, sL->height, 255);
@@ -146,6 +149,11 @@ Layer* regenerateLayer(SavedLayer* sL){
 	 }
 	 //On efface le nouvel id pour donner l'ancien (du coup : saut dans les id)
 	 rL->id = sL->id;
+	 
+	 
+	 for(i = 0; i < sL->nbLuts; ++i){
+	 	addLut(rL, sL->lstLuts[i].function, sL->lstLuts[i].functionValue);
+	 }
 	 
 	 return rL;
 }
@@ -181,6 +189,31 @@ void restoreLayerInList(List* layerList, Layer* lay, int position, bool atEnd){
 	free(state);
 }
 
+SavedLut* saveLuts(List* lutList){
+	if(lutList == NULL) return NULL;
+	Lut* l = NULL;
+	int i = 0;
+	SavedLut* luts = (SavedLut*) calloc(lutList->size, sizeof(SavedLut));
+	if(luts == NULL){
+		fprintf(stderr, "Impossible de stocker dans l'historique la liste des effets du calque\n");
+		return NULL;
+	}
+	
+	ListState* state = saveListState(lutList);
+	goToHeadList(lutList);
+	nextData(lutList);//On ne compte pas neutral
+	
+	while( (l = (Lut*)nextData(lutList) ) != NULL ) {
+		luts[i].function = l->function;
+		luts[i].functionValue = l->valueEffect;
+		i++;
+	}
+	
+	restoreListState(state);
+	free(state);
+	return luts;
+}
+
 bool recordLayerOperation(List* layerList, Layer* lay, OperationName opName, bool atEnd){
 	if(layerList == NULL || lay == NULL)
 		return false;
@@ -212,6 +245,13 @@ bool recordLayerOperation(List* layerList, Layer* lay, OperationName opName, boo
 	sL->width = lay->imgSource->width;
 	sL->height = lay->imgSource->height;
 	sL->atEnd = atEnd;
+	sL->lstLuts = NULL;
+	sL->nbLuts = 0;
+	
+	if(opName == CAL5){
+		sL->lstLuts = saveLuts(lay->lutList);
+		sL->nbLuts = lay->lutList->size - 1;//On ne compte pas le neutral
+	}
 	
 	if(lay->imgSource->name != NULL){
 		sL->imgName = (char*) calloc(strlen(lay->imgSource->name)+1, sizeof(char));
@@ -411,6 +451,7 @@ void freeOperation(Operation* op){
 		case CAL4 :
 		case CAL5 :
 			free(op->type.savedLayer->imgName);
+			free(op->type.savedLayer->lstLuts);
 			free(op->type.savedLayer);
 		break;
 		case LUT1:
