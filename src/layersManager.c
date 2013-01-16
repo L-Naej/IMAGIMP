@@ -87,22 +87,22 @@ Layer* delCurrentLayer(List* layerList){
 	Cell* c = currentCell(layerList);
 	Layer* curLay = NULL;
 	
-	//Suppression du calque de la liste en vidant
-	//complètement la mémoire
+	//Suppression du calque de la liste gardant
+	//le calque en mémoire pour historique
 	curLay = delCellInList(layerList, c);
 	return curLay;
 }
 
-bool delLayer(List* layerList, Layer* lay){
+Layer* delLayer(List* layerList, Layer* lay){
 	if(layerList == NULL || lay == NULL || layerList->type != LAYER)
 		return false;
 	
 	//On va au layer s'il existe et on le supprime
 	if(goToData(layerList, (void*) lay) != -1 ){
-		freeCellInList(layerList, currentCell(layerList));
-		return true;
+		return delCellInList(layerList, currentCell(layerList));
+		
 	}
-	else return false;
+	else return NULL;
 }
 
 //Cette fonction suppose que toutes les images ont les mêmes

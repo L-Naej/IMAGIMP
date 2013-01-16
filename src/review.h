@@ -24,6 +24,10 @@ typedef struct saved_layer{
 	int position;
 	int id;
 	char* imgName;
+	int width;
+	int height;
+	bool atEnd;//Indique si le calque est en fin de liste au 
+		     //moment de la sauvegarde dans l'historique
 } SavedLayer;
 
 /**
@@ -89,7 +93,7 @@ void undo();
 /**
  * Enregistre une opération liée à un calque.
  */
-bool recordLayerOperation(List* layerList, Layer* lay, OperationName opName);
+bool recordLayerOperation(List* layerList, Layer* lay, OperationName opName, bool atEnd);
 
 /**
  * Enregistre une opération liée au chargement de l'image

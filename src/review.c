@@ -2,13 +2,16 @@
 #include "layersManager.h"
 #include "list.h"
 #include "ihm.h"//Pour displayCurrentLayer voir fonction undo
+#include "image.h"
 #include <string.h>
 
 //Variable globale représentant l'historique
 List* review = NULL;
 
-//Fonction interne
+//Fonctions internes
 void printSavedLut(SavedLut* sL);
+Layer* regenerateLayer(SavedLayer* sL);
+void restoreLayerInList(List* layerList, Layer* lay, int position, bool atEnd);
 
 void initReview(){
 	//Si un historique existe déjà, 
@@ -47,7 +50,7 @@ Operation* popOperation(){
 
 void undo(){
 	Operation* lastOp = NULL;
-	
+	Layer* rL = NULL; //Si undo CAL5
 	lastOp = popOperation();
 	if(lastOp == NULL) return;
 	
@@ -79,12 +82,16 @@ void undo(){
 			setLayerOperation(lastOp->type.savedLayer->ptrLay, lastOp->type.savedLayer->oldOperation);
 			printf("L'ancienne opération du calque a été restaurée.\n");
 		break;
-		//On ne peut pas annuler CAL5
+		//Appel à des fonctions internes pour ne pas surcharger le switch
 		case CAL5:
-			//On remet l'opération dans l'historique
-			pushOperation(lastOp);
-			printf("Annulation de la suppression d'un calque impossible.\n");
-			return;//Impératif sinon l'opération est supprimée !!!
+			rL = regenerateLayer(lastOp->type.savedLayer);
+			if(rL == NULL){
+				fprintf(stderr, "Impossible d'annuler la suppression du calque.\n");				pushOperation(lastOp);
+				return;//Impératif sinon l'opération est supprimée !!!
+			}
+			
+			restoreLayerInList(lastOp->list, rL, lastOp->type.savedLayer->position, lastOp->type.savedLayer->atEnd);
+			printf("Le layer d'id %d d'image source %s a été régénéré à son ancienne position.\n", rL->id, rL->imgSource->name);
 		break;
 		case LUT1:
 			delLastLut(lastOp->type.savedLut->owner);
@@ -108,7 +115,73 @@ void undo(){
 	
 }
 
-bool recordLayerOperation(List* layerList, Layer* lay, OperationName opName){
+/*
+ * Recette :
+ * 1. Recharger en mémoire l'image source
+ * 2. Appeler createLayer avec les données de sL
+ * 3. Redonner son id au layer
+ * 4. C'est prêt !
+ */
+Layer* regenerateLayer(SavedLayer* sL){
+	if(sL == NULL)
+		return NULL;
+	Layer* rL = NULL;
+	Image* source = NULL;
+	 
+	 if(sL->imgName == NULL){
+	 	source = createEmptyImg(sL->width, sL->height, 255);
+	 	source->name = "(calque vierge)";
+	 }
+	 else source = loadImage(sL->imgName);
+	 if(source == NULL){
+	 	fprintf(stderr, "Impossible de régénérer l'image du calque. Annulation de la suppression impossible (erreur allocation mémoire).\n");
+	 	return NULL;
+	 }
+	 
+	 rL = createLayer(source, sL->oldOpacity, sL->oldOperation);
+	 if(rL == NULL){
+	 	fprintf(stderr, "Impossible d'allouer la mémoire pour régénérer le calque.\n");
+	 	freeImage(source);
+	 	return NULL;
+	 }
+	 //On efface le nouvel id pour donner l'ancien (du coup : saut dans les id)
+	 rL->id = sL->id;
+	 
+	 return rL;
+}
+
+/*
+ * Recette cas général:
+ * 1. Sauvegarder l'état de la liste
+ * 2. Positionner le curseur de la liste à l'ancienne position
+ *    du calque.
+ * 3. Insérer le calque AVANT le curseur.
+ * 4. Restaurer l'état de la liste (et le supprimer de la mémoire).
+ * 
+ * Cas spéciaux : calque en fin de liste.
+ */
+void restoreLayerInList(List* layerList, Layer* lay, int position, bool atEnd){
+	if(layerList == NULL || lay == NULL) return;
+	
+	ListState* state = saveListState(layerList);
+	
+	//Si le layer était en fin de liste
+	if(atEnd){
+		insertBottomCell(layerList,lay);
+	}
+	
+	//Cas général (début de liste inclus)
+	else {
+		goToPosition(layerList, position);
+		insertBeforeCell(layerList, lay);
+	}
+
+	restoreListState(state);
+	
+	free(state);
+}
+
+bool recordLayerOperation(List* layerList, Layer* lay, OperationName opName, bool atEnd){
 	if(layerList == NULL || lay == NULL)
 		return false;
 	
@@ -136,6 +209,9 @@ bool recordLayerOperation(List* layerList, Layer* lay, OperationName opName){
 	sL->position = layerList->position;
 	sL->id = lay->id;
 	sL->imgName = NULL;
+	sL->width = lay->imgSource->width;
+	sL->height = lay->imgSource->height;
+	sL->atEnd = atEnd;
 	
 	if(lay->imgSource->name != NULL){
 		sL->imgName = (char*) calloc(strlen(lay->imgSource->name)+1, sizeof(char));

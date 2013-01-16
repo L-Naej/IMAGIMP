@@ -264,7 +264,8 @@ void userAddEmptyLayer(List* layerList){
 	//et détecte si la taille de l'image est valide.
 	//On n'a donc pas à s'en soucier
 	if(addLayer(layerList, newLay)){
-		bool review = recordLayerOperation(layerList, newLay, CAL1);
+		//true => forcément en fin de liste
+		bool review = recordLayerOperation(layerList, newLay, CAL1, true);
 		printf("L'ajout du calque a réussi.\n");
 		displayCurrentLayer(layerList);
 		
@@ -343,7 +344,8 @@ void userAddLayer(List* layerList){
 	//AddLayer fait pointer la liste sur le dernier calque,
 	//l'on n'a donc pas à s'en soucier
 	if(addLayer(layerList, newLay)){
-		bool review = recordLayerOperation(layerList, newLay, CAL1);
+		//true => forcément en fin de liste
+		bool review = recordLayerOperation(layerList, newLay, CAL1, true);
 		printf("L'ajout du calque a réussi.\n");
 		displayCurrentLayer(layerList);
 		
@@ -528,6 +530,8 @@ void keyboardListener(unsigned char c, int x, int y){
 	double opacity;
 	LAYER_OP operation;
 	Layer* deletedLay = NULL;
+	bool atEnd = false;
+	atEnd = (layerList->position == layerList->size);
 	
 	switch(c){
 		//Touche échap
@@ -559,7 +563,7 @@ void keyboardListener(unsigned char c, int x, int y){
 		break;
 		case 'o' :
 			opacity = userSetOpacity();
-			if( !recordLayerOperation(layerList, currentLayer(layerList), CAL3)){
+			if( !recordLayerOperation(layerList, currentLayer(layerList), CAL3, atEnd)){
 				fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
 			}
 			setLayerOpacity(currentLayer(layerList), opacity);
@@ -568,7 +572,7 @@ void keyboardListener(unsigned char c, int x, int y){
 		case 'm' :
 			operation = userSetLayerOp();
 			//On enregistre l'état du calque avant de le modifier
-			if( !recordLayerOperation(layerList, currentLayer(layerList), CAL4)){
+			if( !recordLayerOperation(layerList, currentLayer(layerList), CAL4, atEnd)){
 				fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
 			}
 			setLayerOperation(currentLayer(layerList), operation);
@@ -585,7 +589,7 @@ void keyboardListener(unsigned char c, int x, int y){
 			if( (deletedLay = userDelCurrentLayer(layerList) ) != NULL ){
 				displayCurrentLayer(layerList);
 				printf("Calque supprimé.\n");
-				if( !recordLayerOperation(layerList, deletedLay, CAL5)){
+				if( !recordLayerOperation(layerList, deletedLay, CAL5, atEnd)){
 					fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
 				}
 				
@@ -683,6 +687,9 @@ void keyboardSpecialListener(int c, int x, int y){
 void clickMouse(int button,int state,int x,int y) {
 	extern List* layerList;
 	Layer* deletedLayer = NULL;
+	bool atEnd = false;
+	atEnd = (layerList->position == layerList->size);
+	
 	if (button == GLUT_LEFT_BUTTON) {
 		if (state == GLUT_DOWN) {
 			//INVERT
@@ -742,7 +749,7 @@ void clickMouse(int button,int state,int x,int y) {
 			//DIM OPACITY
 			else if (x>524 && x<544 && y<254 && y>236){
 				double opacity = currentLayer(layerList)->opacity - 0.1;
-				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL3)){
+				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL3, atEnd)){
 					fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
 				}
 				setLayerOpacity(currentLayer(layerList), opacity);
@@ -752,7 +759,7 @@ void clickMouse(int button,int state,int x,int y) {
 			//ADD OPACITY
 			else if (x>593 && x<612 && y<254 && y>236){
 				double opacity = currentLayer(layerList)->opacity + 0.1;
-				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL3)){
+				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL3, atEnd)){
 					fprintf(stderr, "\nUne erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
 				}
 				setLayerOpacity(currentLayer(layerList), opacity);
@@ -762,7 +769,7 @@ void clickMouse(int button,int state,int x,int y) {
 			//OPERATION => SUM
 			else if (x>625 && x<643 && y<254 && y>236){
 				//On enregistre l'état du calque avant de le modifier
-				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL4)){
+				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL4, atEnd)){
 					fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
 				}
 				setLayerOperation(currentLayer(layerList), SUM);
@@ -771,7 +778,7 @@ void clickMouse(int button,int state,int x,int y) {
 			//OPERATION => MULT
 			else if (x>682 && x<700 && y<254 && y>236){
 				//On enregistre l'état du calque avant de le modifier
-				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL4)){
+				if( !recordLayerOperation(layerList, currentLayer(layerList), CAL4, atEnd)){
 					fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
 				}
 				setLayerOperation(currentLayer(layerList), MULTIPLICATION);
@@ -796,7 +803,7 @@ void clickMouse(int button,int state,int x,int y) {
 				if( (deletedLayer = userDelCurrentLayer(layerList) ) != NULL ){
 					displayCurrentLayer(layerList);
 					printf("Calque supprimé.\n");
-					if( !recordLayerOperation(layerList, deletedLayer, CAL5)){
+					if( !recordLayerOperation(layerList, deletedLayer, CAL5, atEnd)){
 						fprintf(stderr, "Une erreur est survenue lors de l'ajout de la dernière opération dans l'historique.\n");	
 					}
 				

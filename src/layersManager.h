@@ -56,7 +56,7 @@ Layer* delCurrentLayer(List* layerList);
  * Supprime le layer lay de la liste des
  * calques.
  */
-bool delLayer(List* layerList, Layer* lay);
+Layer* delLayer(List* layerList, Layer* lay);
 
 /**
  * Génère l'image finale en partant du premier calque

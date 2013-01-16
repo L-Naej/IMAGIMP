@@ -115,10 +115,10 @@ void* previousData(List* list);
 /**
  * Compte et renvoie le nombre d'éléments que contient la liste.
  * Ne devrait pas être appelée par une fonctione extérieure de la librairie,
- * utiliser le champ nbCells de la structure List à la place.
- * Renvoie 0 si list est égal à NULL
+ * utiliser le champ size de la structure List à la place.
+ * Renvoie 0 si list est égale à NULL
  * @param list la liste que l'on compte
- * Note: voir l'utilité de cette fonction avec le champs nbCells...
+ * Note: voir l'utilité de cette fonction avec le champs size...
  */
 int listCountElem(List* list);
 
