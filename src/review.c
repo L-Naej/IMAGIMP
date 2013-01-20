@@ -86,7 +86,8 @@ void undo(){
 		case CAL5:
 			rL = regenerateLayer(lastOp->type.savedLayer);
 			if(rL == NULL){
-				fprintf(stderr, "Impossible d'annuler la suppression du calque.\n");				pushOperation(lastOp);
+				fprintf(stderr, "Impossible d'annuler la suppression du calque.\n");
+				pushOperation(lastOp);
 				return;//Impératif sinon l'opération est supprimée !!!
 			}
 			
