@@ -15,21 +15,6 @@ typedef enum operation_name{
 	LUT3
 } OperationName;
 
-typedef struct saved_layer{
-	Layer* ptrLay;
-	double oldOpacity;
-	double newOpacity;
-	LAYER_OP oldOperation;
-	LAYER_OP newOperation;
-	int position;
-	int id;
-	char* imgName;
-	int width;
-	int height;
-	bool atEnd;//Indique si le calque est en fin de liste au 
-		     //moment de la sauvegarde dans l'historique
-} SavedLayer;
-
 /**
  * Informations sur le lut utilisées
  * pour le régénérer si on veut annuler
@@ -48,6 +33,23 @@ typedef struct saved_lut{
 	int ownerId;
 	char* imgName;
 }SavedLut;
+
+typedef struct saved_layer{
+	Layer* ptrLay;
+	double oldOpacity;
+	double newOpacity;
+	LAYER_OP oldOperation;
+	LAYER_OP newOperation;
+	int position;
+	int id;
+	char* imgName;
+	int width;
+	int height;
+	bool atEnd;//Indique si le calque est en fin de liste au 
+		     //moment de la sauvegarde dans l'historique
+	SavedLut* lstLuts;
+	int nbLuts;
+} SavedLayer;
 
 typedef union core_review{
 	SavedLayer* savedLayer;
