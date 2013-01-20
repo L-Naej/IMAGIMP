@@ -132,7 +132,7 @@ Layer* regenerateLayer(SavedLayer* sL){
 	Image* source = NULL;
 	int i = 0;
 	 
-	 if(sL->imgName == NULL){
+	 if(sL->imgName == NULL || strcmp(sL->imgName, "(calque vierge)") == 0){
 	 	source = createEmptyImg(sL->width, sL->height, 255);
 	 	source->name = "(calque vierge)";
 	 }
