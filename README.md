@@ -1,13 +1,14 @@
 IMAGIMP
 =======
-<img src="./showcase/imagimp.png" width="400" height="300"/>
-<img src="./showcase/imagimp_sepia.png" width="400" height="300"/>
+Mini image processing software developped for a C course at the IMAC engineering school. <br/>
+<img src="./showcase/imagimp.png" width="200" height="150"/>
+<img src="./showcase/imagimp_sepia.png" width="200" height="150"/>
 <br/>
-<img src="./showcase/layer_multiplication.png" width="400" height="300"/>
-<img src="./showcase/histogramm.png" width="400" height="300"/>
+<img src="./showcase/layer_multiplication.png" width="200" height="150"/>
+<img src="./showcase/histogramm.png" width="200" height="150"/>
 <br/>
-([more screenshots](./showcase))
-Mini image processing software developped for a C course at the IMAC engineering school. 
+([more screenshots](./showcase))<br/>
+
  * Layers management
  * Effect management by layer (contrast, luminosity, sepia, black and white...)
  * Save the resulting image
